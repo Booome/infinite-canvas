@@ -2,6 +2,8 @@
 
 declare const __APP_VERSION__: string;
 declare const __APP_RELEASES__: import("@/lib/release").ReleaseInfo[];
+// True for desktop shell builds (vite --mode desktop); hides the local Canvas Agent entry points.
+declare const __IS_DESKTOP__: boolean;
 
 interface ImportMetaEnv {
     // Comma-separated local development plugin URLs, refetched on every startup without caching or persistence.

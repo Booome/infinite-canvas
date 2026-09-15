@@ -43,6 +43,7 @@ import { AssetPickerModal, type InsertAssetPayload } from "@/components/canvas/a
 import { CanvasSidePanel } from "@/components/canvas/canvas-side-panel";
 import { CanvasZoomControls } from "@/components/canvas/canvas-zoom-controls";
 import { useAgentStore } from "@/stores/use-agent-store";
+import { IS_DESKTOP } from "@/constant/env";
 import { useCanvasStore } from "@/stores/canvas/use-canvas-store";
 import { useAgentBridge } from "@/pages/canvas/hooks/use-agent-bridge";
 import { usePluginHost } from "@/pages/canvas/hooks/use-plugin-host";
@@ -469,7 +470,7 @@ function InfiniteCanvasPage() {
     }, [projectLoaded]);
 
     useEffect(() => {
-        if (!projectLoaded || !["new", "recent", "choose"].includes(searchParams.get("mode") || "")) return;
+        if (!projectLoaded || IS_DESKTOP || !["new", "recent", "choose"].includes(searchParams.get("mode") || "")) return;
         if (!searchParams.has("agentUrl") && !localAgentEnabled && !fragmentBootstrap) openAgentPanel();
     }, [fragmentBootstrap, localAgentEnabled, openAgentPanel, projectLoaded, searchParams]);
 

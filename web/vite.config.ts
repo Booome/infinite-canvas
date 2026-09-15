@@ -38,7 +38,7 @@ function localPluginsManifest(): Plugin {
     };
 }
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
     base: process.env.VITE_BASE || "/",
     plugins: [react(), localPluginsManifest()],
     resolve: {
@@ -49,5 +49,6 @@ export default defineConfig({
     define: {
         __APP_VERSION__: JSON.stringify(localVersion),
         __APP_RELEASES__: JSON.stringify(parseChangelog(localChangelog)),
+        __IS_DESKTOP__: JSON.stringify(mode === "desktop"),
     },
-});
+}));
