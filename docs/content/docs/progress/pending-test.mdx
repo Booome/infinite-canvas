@@ -10,6 +10,7 @@ The current release needs manual verification in these areas:
 - Canvas overlays while zooming: node prompt panels and the node/connection create menus should keep a constant on-screen size at any zoom level, and the "Select references" hint button should stay centered at the top of the viewport instead of drifting with the canvas.
 - Reference selection mode: entering it should hide the node hover toolbar.
 - Create menus: the node menu on double-clicking empty canvas and the connection create menu should render tighter (smaller items, icons, text), and node names in the double-click menu should follow the app language.
+- Duplicate / copy-paste: duplicating a node (or pasting copied nodes) should carry the inbound reference connections over to the new nodes, while outbound connections stay untouched.
 
 - Desktop shell: building `desktop/` with `bun run build` (Tauri) should produce a single self-contained `infinite-canvas.exe` that opens the home page on double click, without starting any local port. Canvas CRUD, image/video generation via the user's own API, asset downloads, and plugin loading should match the `localhost:3000` web experience. The desktop build must not render the Agent icon in the canvas top bar or the top navigation, must not auto-open the Agent panel when opening a project, and must not auto-connect to a saved Agent token. The web build (`bun run build`) must keep all Agent entry points unchanged.
 
