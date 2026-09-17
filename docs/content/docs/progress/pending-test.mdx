@@ -7,6 +7,9 @@ description: Implemented changes that still need manual verification
 
 The current release needs manual verification in these areas:
 
+- Canvas overlays while zooming: node prompt panels and the node/connection create menus should keep a constant on-screen size at any zoom level, and the "Select references" hint button should stay centered at the top of the viewport instead of drifting with the canvas.
+- Reference selection mode: entering it should hide the node hover toolbar.
+
 - Desktop shell: building `desktop/` with `bun run build` (Tauri) should produce a single self-contained `infinite-canvas.exe` that opens the home page on double click, without starting any local port. Canvas CRUD, image/video generation via the user's own API, asset downloads, and plugin loading should match the `localhost:3000` web experience. The desktop build must not render the Agent icon in the canvas top bar or the top navigation, must not auto-open the Agent panel when opening a project, and must not auto-connect to a saved Agent token. The web build (`bun run build`) must keep all Agent entry points unchanged.
 
 - Canvas image previews: canvas image nodes, the left element list, the node reference bar, my-assets cards, the asset picker, image workbench result cards and history thumbnails, and the image/video workbench reference strips all render from a preview capped at a 768px long edge, so image-heavy views no longer decode the originals. Previews live locally only: canvas data, asset data, generation history, exported zips, and WebDAV sync must never contain preview content, and previews should be cleaned up when an image is deleted or no longer used. Opening the full-size image, editing, downloading, exporting, and generation references must keep using the original; an image that is already at or under 768px, exists only as a remote URL, or uses a custom cover should fall back to the original.
