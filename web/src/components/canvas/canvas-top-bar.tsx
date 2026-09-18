@@ -170,6 +170,8 @@ export function CanvasTopBar({
                     <Shortcut keys={["Ctrl / Cmd", "Y"]} value={t("canvas.redo")} />
                     <Shortcut keys={["Delete / Backspace"]} value={t("canvas.shortcut.delete")} />
                     <Shortcut keys={["Esc"]} value={t("canvas.shortcut.escape")} />
+                    <Shortcut keys={["F"]} value={t("canvas.shortcut.focusSelected")} />
+                    <Shortcut keys={["[ / ]"]} value={`${t("canvas.shortcut.focusBack")} / ${t("canvas.shortcut.focusForward")}`} />
                     <Shortcut keys={[t("canvas.shortcut.dropMedia")]} value={t("canvas.shortcut.upload")} />
                 </div>
             </Modal>

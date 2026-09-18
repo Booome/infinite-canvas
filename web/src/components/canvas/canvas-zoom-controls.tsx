@@ -69,6 +69,8 @@ export function CanvasZoomControls({ scale, onScaleChange, onReset, isMiniMapOpe
                     <Shortcut label="Ctrl / Cmd + G" value={t("canvas.shortcut.group")} />
                     <Shortcut label="Ctrl / Cmd + Shift + G" value={t("canvas.shortcut.ungroup")} />
                     <Shortcut label="Delete / Backspace" value={t("canvas.shortcut.delete")} />
+                    <Shortcut label="F" value={t("canvas.shortcut.focusSelected")} />
+                    <Shortcut label="[ / ]" value={`${t("canvas.shortcut.focusBack")} / ${t("canvas.shortcut.focusForward")}`} />
                 </div>
             </Modal>
         </div>

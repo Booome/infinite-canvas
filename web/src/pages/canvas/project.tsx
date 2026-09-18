@@ -1702,6 +1702,21 @@ function InfiniteCanvasPage() {
                 return;
             }
 
+            if (!isModifierShortcut && !event.altKey && !event.shiftKey && key === "f") {
+                if (selectedNodeIdsRef.current.size) focusSelectedNode();
+                return;
+            }
+
+            if (!isModifierShortcut && !event.altKey && key === "[") {
+                focusBack();
+                return;
+            }
+
+            if (!isModifierShortcut && !event.altKey && key === "]") {
+                focusForward();
+                return;
+            }
+
             if (event.key === "Delete" || event.key === "Backspace") {
                 if (selectedNodeIdsRef.current.size) {
                     deleteNodes(new Set(selectedNodeIdsRef.current));
@@ -1729,7 +1744,7 @@ function InfiniteCanvasPage() {
 
         window.addEventListener("keydown", handleKeyDown);
         return () => window.removeEventListener("keydown", handleKeyDown);
-    }, [copySelectedNodes, deleteConnection, deleteNodes, groupSelection, pasteCopiedNodes, pasteSystemClipboard, redoCanvas, selectedConnectionId, setConnecting, undoCanvas, ungroupSelection]);
+    }, [copySelectedNodes, deleteConnection, deleteNodes, focusBack, focusForward, focusSelectedNode, groupSelection, pasteCopiedNodes, pasteSystemClipboard, redoCanvas, selectedConnectionId, setConnecting, undoCanvas, ungroupSelection]);
 
     const handleConnectStart = useCallback(
         (event: ReactMouseEvent, nodeId: string, handleType: "source" | "target") => {
