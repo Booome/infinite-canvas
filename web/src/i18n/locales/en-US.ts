@@ -312,7 +312,6 @@ export default {
             addSelection: "Add nodes to selection",
             selectAll: "Select all nodes",
             copyPaste: "Copy/paste nodes or paste clipboard text/images",
-            copyPasteNodes: "Copy/paste nodes",
             delete: "Delete selection",
             group: "Group selected nodes",
             ungroup: "Ungroup selected nodes",
@@ -324,6 +323,13 @@ export default {
             upload: "Upload to canvas",
             drag: "Drag",
             click: "Click",
+            or: "or",
+        },
+        shortcutGroup: {
+            view: "View",
+            edit: "Selection & editing",
+            focus: "Focus",
+            media: "Media",
         },
     },
     navigation: {

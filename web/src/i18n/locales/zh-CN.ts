@@ -312,7 +312,6 @@ export default {
             addSelection: "追加选择节点",
             selectAll: "全选节点",
             copyPaste: "复制 / 粘贴节点，或粘贴剪切板文本/图片",
-            copyPasteNodes: "复制 / 粘贴节点",
             delete: "删除选中",
             group: "将选中节点打组",
             ungroup: "解散选中的组",
@@ -324,6 +323,13 @@ export default {
             upload: "上传到画布",
             drag: "拖动",
             click: "点击",
+            or: "或",
+        },
+        shortcutGroup: {
+            view: "视图",
+            edit: "选择与编辑",
+            focus: "聚焦",
+            media: "媒体",
         },
     },
     navigation: {
