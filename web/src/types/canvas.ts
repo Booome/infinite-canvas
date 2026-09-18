@@ -44,6 +44,13 @@ export type CanvasNodeText = {
     content: string;
 };
 
+export type CanvasGenerationSnapshot = {
+    mode: CanvasGenerationMode;
+    params: CanvasNodeMetadata;
+    prompt?: string;
+    referenceNodeIds?: string[];
+};
+
 export type CanvasNodeMetadata = {
     content?: string;
     composerContent?: string;
@@ -85,6 +92,7 @@ export type CanvasNodeMetadata = {
     videoTaskProvider?: "openai" | "gemini";
     groupId?: string;
     interactive?: boolean; // Plugin node interaction/move state; see CanvasNodeDefinition.interactionToggle.
+    generationSnapshot?: CanvasGenerationSnapshot;
 };
 
 export type CanvasNodeData = {

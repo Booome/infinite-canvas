@@ -1,5 +1,5 @@
 import type { AiConfig } from "@/stores/use-config-store";
-import { CanvasNodeType, type CanvasGenerationMode, type CanvasNodeMetadata, type CanvasNodeTypeId } from "@/types/canvas";
+import { CanvasNodeType, type CanvasGenerationMode, type CanvasGenerationSnapshot, type CanvasNodeMetadata, type CanvasNodeTypeId } from "@/types/canvas";
 
 export function generationModeForNodeType(type: CanvasNodeTypeId): CanvasGenerationMode {
     return type === CanvasNodeType.Text ? "text" : type === CanvasNodeType.Video ? "video" : type === CanvasNodeType.Audio ? "audio" : "image";
@@ -64,4 +64,31 @@ export function updateGenerationDefaults(defaults: CanvasGenerationDefaults, mod
     const picked = pickGenerationParams(metadata);
     if (!Object.keys(picked).length) return defaults;
     return { ...defaults, [mode]: { ...defaults[mode], ...picked } };
+}
+
+export function createGenerationSnapshot(mode: CanvasGenerationMode, metadata: CanvasNodeMetadata, prompt: string, referenceNodeIds: string[]): CanvasGenerationSnapshot {
+    return { mode, params: pickGenerationParams(metadata), prompt, referenceNodeIds };
+}
+
+export function generationSnapshotDiffers(snapshot: CanvasGenerationSnapshot | undefined, mode: CanvasGenerationMode, metadata: CanvasNodeMetadata, prompt: string, referenceNodeIds: string[]) {
+    if (!snapshot) return false;
+    if (snapshot.mode !== mode) return true;
+    if ((snapshot.prompt || "") !== (prompt || "")) return true;
+    if (!sameIdSet(snapshot.referenceNodeIds, referenceNodeIds)) return true;
+    const params = pickGenerationParams(metadata);
+    const keys = new Set([...Object.keys(snapshot.params), ...Object.keys(params)]);
+    for (const key of keys) {
+        const before = (snapshot.params as Record<string, unknown>)[key];
+        const after = (params as Record<string, unknown>)[key];
+        if (JSON.stringify(before) !== JSON.stringify(after)) return true;
+    }
+    return false;
+}
+
+function sameIdSet(before?: string[], after?: string[]) {
+    const a = before || [];
+    const b = after || [];
+    if (a.length !== b.length) return false;
+    const set = new Set(a);
+    return b.every((id) => set.has(id));
 }

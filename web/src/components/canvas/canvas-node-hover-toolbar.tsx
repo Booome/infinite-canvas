@@ -122,7 +122,7 @@ export function CanvasNodeHoverToolbar({
     const canQueryVideoTask = isVideo && Boolean(node.metadata?.videoTaskId) && !hasVideo && node.metadata?.status !== "loading";
     const quickImageToolIdSet = new Set(quickImageToolIds);
     const copyImagePrompt = (target: CanvasNodeData) => {
-        const prompt = target.metadata?.prompt?.trim();
+        const prompt = (target.metadata?.generationSnapshot?.prompt || target.metadata?.prompt || "").trim();
         if (!prompt) {
             message.warning(t("canvas.nodeToolbar.noPrompt"));
             return;

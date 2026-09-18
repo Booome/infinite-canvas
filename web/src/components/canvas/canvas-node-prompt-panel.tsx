@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ArrowUp, LoaderCircle, Maximize2, Square } from "lucide-react";
+import { ArrowUp, LoaderCircle, Maximize2, RotateCcw, Square } from "lucide-react";
 import { Button, Modal, Tooltip } from "antd";
 import { useTranslation } from "react-i18next";
 
@@ -16,7 +16,7 @@ import { CanvasVideoSettingsPopover } from "./canvas-video-settings-popover";
 import { CanvasTextSettingsPopover } from "./canvas-text-settings-popover";
 import { CanvasNodeType, type CanvasGenerationMode, type CanvasNodeData } from "@/types/canvas";
 import type { CanvasResourceReference } from "@/lib/canvas/canvas-resource-references";
-import { generationModeForNodeType, type CanvasGenerationDefaults } from "@/lib/canvas/canvas-generation-defaults";
+import { generationModeForNodeType, generationSnapshotDiffers, type CanvasGenerationDefaults } from "@/lib/canvas/canvas-generation-defaults";
 import { CanvasNodeReferenceBar } from "./canvas-node-reference-bar";
 
 export type CanvasNodeGenerationMode = CanvasGenerationMode;
@@ -37,9 +37,10 @@ type CanvasNodePromptPanelProps = {
     onImageSettingsOpenChange?: (open: boolean) => void;
     modeOverride?: CanvasNodeGenerationMode; // Plugin nodes set their generation type through useBuiltinPanel.mode.
     generationDefaults?: CanvasGenerationDefaults;
+    onResetGeneration?: (nodeId: string) => void;
 };
 
-export function CanvasNodePromptPanel({ node, nodes, isRunning, onPromptChange, onConfigChange, onGenerate, onStop, mentionReferences = [], connectedNodes = [], onDisconnectReference, onStartReferenceSelection, onFocusNode, onImageSettingsOpenChange, modeOverride, generationDefaults }: CanvasNodePromptPanelProps) {
+export function CanvasNodePromptPanel({ node, nodes, isRunning, onPromptChange, onConfigChange, onGenerate, onStop, mentionReferences = [], connectedNodes = [], onDisconnectReference, onStartReferenceSelection, onFocusNode, onImageSettingsOpenChange, modeOverride, generationDefaults, onResetGeneration }: CanvasNodePromptPanelProps) {
     const { t } = useTranslation();
     const globalConfig = useEffectiveConfig();
     const openConfigDialog = useConfigStore((state) => state.openConfigDialog);
@@ -51,6 +52,9 @@ export function CanvasNodePromptPanel({ node, nodes, isRunning, onPromptChange, 
     const isEditingExistingContent = hasTextContent || hasImageContent;
     const [prompt, setPrompt] = useState(node.metadata?.composerContent ?? node.metadata?.prompt ?? "");
     const [expanded, setExpanded] = useState(false);
+    const generationSnapshot = node.metadata?.generationSnapshot;
+    const persistedPrompt = node.metadata?.composerContent ?? node.metadata?.prompt ?? "";
+    const canResetGeneration = Boolean(generationSnapshot) && generationSnapshotDiffers(generationSnapshot, mode, node.metadata || {}, persistedPrompt, connectedNodes.map((item) => item.id));
 
     // Restore prompts only when switching nodes; preserve the current input after generation on the same node.
     useEffect(() => {
@@ -72,6 +76,12 @@ export function CanvasNodePromptPanel({ node, nodes, isRunning, onPromptChange, 
 
     const openExpandedEditor = () => {
         setExpanded(true);
+    };
+
+    const resetGeneration = () => {
+        if (!generationSnapshot) return;
+        setPrompt(generationSnapshot.prompt || "");
+        onResetGeneration?.(node.id);
     };
 
     return (
@@ -113,6 +123,11 @@ export function CanvasNodePromptPanel({ node, nodes, isRunning, onPromptChange, 
                                 onMissingConfig={() => openConfigDialog(true)}
                                 onOpenChange={onImageSettingsOpenChange}
                             />
+                            {generationSnapshot && onResetGeneration ? (
+                                <Tooltip title={t("canvas.promptPanel.resetGeneration")}>
+                                    <Button type="text" disabled={isRunning || !canResetGeneration} className="!h-8 !w-8 !min-w-8 shrink-0 !rounded-full !bg-transparent !p-0" style={{ color: theme.node.text }} icon={<RotateCcw className="size-3.5" />} onClick={resetGeneration} aria-label={t("canvas.promptPanel.resetGeneration")} />
+                                </Tooltip>
+                            ) : null}
                         </>
                     ) : mode === "video" ? (
                         <>
