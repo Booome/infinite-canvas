@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, KeyboardEvent, MouseEvent, PointerEvent } from "react";
 import { createPortal } from "react-dom";
 import { Image } from "antd";
@@ -41,6 +41,10 @@ export function CanvasPromptChipInput({ value, references, onChange, onSubmit, c
     const [mention, setMention] = useState<MentionState | null>(null);
     const [activeIndex, setActiveIndex] = useState(0);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
+    const [chipPreview, setChipPreview] = useState<{ reference: CanvasResourceReference; rect: DOMRect } | null>(null);
+    const handleHoverPreview = useCallback((reference: CanvasResourceReference | null, rect: DOMRect | null) => {
+        setChipPreview(reference && rect ? { reference, rect } : null);
+    }, []);
 
     const activeReferences = useMemo(() => references.filter((item) => item.active), [references]);
     const referenceByLabel = useMemo(() => new Map(activeReferences.map((item) => [item.label, item])), [activeReferences]);
@@ -67,11 +71,11 @@ export function CanvasPromptChipInput({ value, references, onChange, onSubmit, c
                 return;
             }
             const reference = referenceByLabel.get(token.label);
-            if (reference) editor.append(createReferenceChip(reference, theme, setImagePreview));
+            if (reference) editor.append(createReferenceChip(reference, theme, setImagePreview, handleHoverPreview));
             else editor.append(document.createTextNode(token.label));
         });
         lastEmittedRef.current = value;
-    }, [tokens, referenceByLabel, theme, value]);
+    }, [tokens, referenceByLabel, theme, value, handleHoverPreview]);
 
     const emit = (next: string) => {
         lastEmittedRef.current = next;
@@ -105,7 +109,7 @@ export function CanvasPromptChipInput({ value, references, onChange, onSubmit, c
         const editor = editorRef.current;
         if (!editor) return;
         removeActiveMention();
-        const chip = createReferenceChip(reference, theme, setImagePreview);
+        const chip = createReferenceChip(reference, theme, setImagePreview, handleHoverPreview);
         const space = document.createTextNode(" ");
         const selection = window.getSelection();
         const range = selection?.rangeCount ? selection.getRangeAt(0) : null;
@@ -194,6 +198,21 @@ export function CanvasPromptChipInput({ value, references, onChange, onSubmit, c
                 <MentionMenu rect={mention.rect} references={candidates} activeIndex={Math.min(activeIndex, candidates.length - 1)} theme={theme} onSelect={insertReference} />
             ) : null}
             {imagePreview ? <Image src={imagePreview} alt={i18n.t("canvas.composer.imagePreview")} style={{ display: "none" }} preview={{ visible: true, src: imagePreview, onVisibleChange: (visible) => !visible && setImagePreview(null) }} /> : null}
+            {chipPreview ? (
+                createPortal(
+                    <div
+                        className="pointer-events-none fixed z-[1200] -translate-x-1/2 -translate-y-full rounded-lg border p-0.5 shadow-2xl"
+                        style={{ left: chipPreview.rect.left + chipPreview.rect.width / 2, top: chipPreview.rect.top - 6, background: theme.toolbar.panel, borderColor: theme.toolbar.border }}
+                    >
+                        {chipPreview.reference.kind === "video" ? (
+                            <video src={chipPreview.reference.previewUrl} className="max-h-52 w-72 rounded-md object-contain" muted preload="metadata" />
+                        ) : (
+                            <img src={chipPreview.reference.previewUrl} alt={chipPreview.reference.title} className="max-h-52 w-72 rounded-md object-contain" />
+                        )}
+                    </div>,
+                    document.body,
+                )
+            ) : null}
         </div>
     );
 }
@@ -272,10 +291,14 @@ function ReferencePreview({ reference }: { reference: CanvasResourceReference })
     );
 }
 
-function createReferenceChip(reference: CanvasResourceReference, theme: (typeof canvasThemes)[keyof typeof canvasThemes], onImagePreview: (url: string) => void) {
+function createReferenceChip(reference: CanvasResourceReference, theme: (typeof canvasThemes)[keyof typeof canvasThemes], onImagePreview: (url: string) => void, onHoverPreview: (reference: CanvasResourceReference | null, rect: DOMRect | null) => void) {
     const wrapper = document.createElement("span");
     wrapper.contentEditable = "false";
     wrapper.dataset.refLabel = reference.label;
+    if ((reference.kind === "image" || reference.kind === "video") && reference.previewUrl) {
+        wrapper.addEventListener("mouseenter", () => onHoverPreview(reference, wrapper.getBoundingClientRect()));
+        wrapper.addEventListener("mouseleave", () => onHoverPreview(null, null));
+    }
     if (reference.kind === "image" && reference.previewUrl) {
         const image = document.createElement("img");
         image.src = reference.previewUrl;
