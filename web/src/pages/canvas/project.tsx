@@ -700,10 +700,13 @@ function InfiniteCanvasPage() {
         // `nodes` keeps the container rect re-read on node changes, matching the previous behaviour when the container resizes without a size update.
     }, [nodes, size.height, size.width, viewport.k, viewport.x, viewport.y]);
 
-    const visibleNodes = useMemo(
-        () => nodes.filter((node) => node.position.x + node.width > viewBounds.left && node.position.x < viewBounds.right && node.position.y + node.height > viewBounds.top && node.position.y < viewBounds.bottom),
-        [nodes, viewBounds],
-    );
+    const visibleNodes = useMemo(() => {
+        const inView = nodes.filter((node) => node.position.x + node.width > viewBounds.left && node.position.x < viewBounds.right && node.position.y + node.height > viewBounds.top && node.position.y < viewBounds.bottom);
+        // Keep the panel node mounted even when off-screen so focusing it can measure its panel before it scrolls into view.
+        if (!dialogNodeId || inView.some((node) => node.id === dialogNodeId)) return inView;
+        const dialogNode = nodes.find((node) => node.id === dialogNodeId);
+        return dialogNode ? [dialogNode, ...inView] : inView;
+    }, [nodes, viewBounds, dialogNodeId]);
 
     const nodeById = useMemo(() => new Map(nodes.map((node) => [node.id, node])), [nodes]);
 
@@ -1129,24 +1132,29 @@ function InfiniteCanvasPage() {
             if (!node) return;
             setHoverPreviewNodeId(null);
             if (options?.record !== false) recordFocus(nodeId);
-            const target = focusViewportForNode(node, size, measureFocusFrame(containerRef.current, nodeId));
             setSelectedNodeIds(new Set([nodeId]));
             setSelectedConnectionId(null);
             setContextMenu(null);
+            // Open the node panel first so the focus math accounts for it, matching every focus entry point.
+            if (node.type !== CanvasNodeType.Group && !getNodeDefinition(node.type)?.hidePanel) setDialogNodeId(nodeId);
 
             if (focusAnimRef.current) cancelAnimationFrame(focusAnimRef.current);
-            const start = { ...viewportRef.current };
             const duration = 450;
             const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
-            let startTime: number | null = null;
-            const step = (now: number) => {
-                if (startTime === null) startTime = now;
-                const progress = Math.min((now - startTime) / duration, 1);
-                const t = easeOutCubic(progress);
-                setViewport({ x: start.x + (target.x - start.x) * t, y: start.y + (target.y - start.y) * t, k: start.k + (target.k - start.k) * t });
-                focusAnimRef.current = progress < 1 ? requestAnimationFrame(step) : null;
-            };
-            focusAnimRef.current = requestAnimationFrame(step);
+            // Measure after the panel has rendered so the node and its overlay are placed together.
+            focusAnimRef.current = requestAnimationFrame(() => {
+                const target = focusViewportForNode(node, size, measureFocusFrame(containerRef.current, nodeId));
+                const start = { ...viewportRef.current };
+                let startTime: number | null = null;
+                const step = (now: number) => {
+                    if (startTime === null) startTime = now;
+                    const progress = Math.min((now - startTime) / duration, 1);
+                    const t = easeOutCubic(progress);
+                    setViewport({ x: start.x + (target.x - start.x) * t, y: start.y + (target.y - start.y) * t, k: start.k + (target.k - start.k) * t });
+                    focusAnimRef.current = progress < 1 ? requestAnimationFrame(step) : null;
+                };
+                focusAnimRef.current = requestAnimationFrame(step);
+            });
         },
         [size.height, size.width, recordFocus],
     );
@@ -1406,10 +1414,8 @@ function InfiniteCanvasPage() {
                 setDialogNodeId((current) => (current === clickedNodeId ? current : null));
             } else if (clickedNode?.type !== CanvasNodeType.Group) {
                 setDialogNodeId(clickedNodeId);
-                if (useConfigStore.getState().config.autoFocusOnSelect) {
-                    // Wait for the generation panel to render so centering accounts for it, matching the toolbar/list focus.
-                    requestAnimationFrame(() => focusNodeRef.current(clickedNodeId));
-                }
+                // focusNode opens the panel and measures after it renders, matching the toolbar/list focus.
+                if (useConfigStore.getState().config.autoFocusOnSelect) focusNodeRef.current(clickedNodeId);
             }
         }
     }, []);
