@@ -1146,7 +1146,10 @@ function InfiniteCanvasPage() {
             const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
             // Measure after the panel has rendered so the node and its overlay are placed together.
             focusAnimRef.current = requestAnimationFrame(() => {
-                const target = focusViewportForNode(node, size, measureFocusFrame(containerRef.current, nodeId));
+                // Read the container rect here: callers inside memoized nodes hold a stale closure, so `size` can lag behind.
+                const containerRect = containerRef.current?.getBoundingClientRect();
+                const viewportSize = containerRect ? { width: containerRect.width, height: containerRect.height } : size;
+                const target = focusViewportForNode(node, viewportSize, measureFocusFrame(containerRef.current, nodeId));
                 const start = { ...viewportRef.current };
                 let startTime: number | null = null;
                 const step = (now: number) => {
