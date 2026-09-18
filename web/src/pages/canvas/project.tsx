@@ -126,6 +126,7 @@ type CanvasGenerationRequest = {
 
 const VIDEO_NODE_MAX_WIDTH = 420;
 const VIDEO_NODE_MAX_HEIGHT = 420;
+const HOVER_PREVIEW_GAP = 24;
 // Stable empty reference array prevents `... || []` from invalidating CanvasNode's React.memo on every render.
 const EMPTY_REFERENCES: CanvasResourceReference[] = [];
 const CONNECTION_HANDLE_HIT_RADIUS = 40;
@@ -3240,7 +3241,7 @@ function InfiniteCanvasPage() {
     const showHoverPreview = Boolean(hoverPreviewMedia);
     const retainedPreviewRef = useRef<{ video: boolean; src: string; title: string; width: number; height: number } | null>(null);
     if (hoverPreviewMedia) {
-        const previewSize = fitNodeSize(hoverPreviewMedia.width, hoverPreviewMedia.height, size.width * 0.9, size.height * 0.9);
+        const previewSize = fitNodeSize(hoverPreviewMedia.width, hoverPreviewMedia.height, Math.max(1, size.width - HOVER_PREVIEW_GAP * 2), size.height * 0.9);
         retainedPreviewRef.current = { video: hoverPreviewMedia.video, src: hoverPreviewMedia.src, title: hoverPreviewNode?.title || "", width: previewSize.width, height: previewSize.height };
     }
     const retainedPreview = retainedPreviewRef.current;
@@ -3391,8 +3392,8 @@ function InfiniteCanvasPage() {
                 </InfiniteCanvas>
 
                 <div
-                    className="pointer-events-none absolute inset-0 z-[80] flex items-center justify-center transition-opacity duration-200 ease-out"
-                    style={{ background: `color-mix(in srgb, ${theme.canvas.background} 76%, transparent)`, opacity: showHoverPreview ? 1 : 0 }}
+                    className="pointer-events-none absolute inset-0 z-[80] flex items-center justify-start transition-opacity duration-200 ease-out"
+                    style={{ background: `color-mix(in srgb, ${theme.canvas.background} 76%, transparent)`, opacity: showHoverPreview ? 1 : 0, paddingLeft: HOVER_PREVIEW_GAP }}
                 >
                     <div
                         className="flex flex-col overflow-hidden rounded-2xl border transition-transform duration-200 ease-out"
