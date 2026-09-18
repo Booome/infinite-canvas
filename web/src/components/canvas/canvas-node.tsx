@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState, useSyncExtern
 import type { ReactNode } from "react";
 import { ChevronRight, Copy, Download, Group, Image as ImageIcon, Music2, Puzzle, RefreshCw, Star, Trash2, Video } from "lucide-react";
 
-import { canvasThemes } from "@/lib/canvas-theme";
+import { canvasThemes, CANVAS_ACCENT } from "@/lib/canvas-theme";
 import { formatBytes } from "@/lib/image-utils";
 import { pickImageSource } from "@/lib/image-thumbnail";
 import { previewUrlFor, subscribeImagePreviews, getImagePreviewRevision } from "@/services/image-storage";
@@ -16,7 +16,7 @@ import type { CanvasResourceReference } from "@/lib/canvas/canvas-resource-refer
 import { useTranslation } from "react-i18next";
 
 type ResizeCorner = "top-left" | "top-right" | "bottom-left" | "bottom-right";
-const selectionBlue = "#2f80ff";
+const selectionBlue = CANVAS_ACCENT;
 
 type CanvasNodeProps = {
     data: CanvasNodeData;

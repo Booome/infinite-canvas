@@ -8,7 +8,7 @@ description: Implemented changes that still need manual verification
 The current release needs manual verification in these areas:
 
 - Canvas overlays while zooming: node prompt panels and the node/connection create menus should keep a constant on-screen size at any zoom level, and the "Select references" hint button should stay centered at the top of the viewport instead of drifting with the canvas.
-- Reference selection mode: entering it should hide the node hover toolbar.
+- Reference selection mode: entering it should hide the node hover toolbar, tint the canvas with an accent ring, switch the canvas cursor to a crosshair, and show an accent-colored hint at the top saying references can be picked on the canvas or in the left element list; ESC should return to the input.
 - Create menus: the node menu on double-clicking empty canvas and the connection create menu should render tighter (smaller items, icons, text), and node names in the double-click menu should follow the app language.
 - Duplicate / copy-paste: duplicating a node (or pasting copied nodes) should carry the inbound reference connections over to the new nodes, while outbound connections stay untouched.
 - Regenerate behavior: the default preference should preserve the original behavior (generating on a node that already has content creates a new node). Switching the preference to "overwrite" should replace that node in place (no new node, no new connection, and image nodes should no longer use their own image as a reference). Config nodes should always create a new result node.

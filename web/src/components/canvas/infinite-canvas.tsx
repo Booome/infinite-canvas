@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 
-import { canvasThemes, type CanvasBackgroundMode } from "@/lib/canvas-theme";
+import { CANVAS_ACCENT, canvasThemes, type CanvasBackgroundMode } from "@/lib/canvas-theme";
 import { useThemeStore } from "@/stores/use-theme-store";
 import type { ViewportTransform } from "@/types/canvas";
 
@@ -9,6 +9,7 @@ type InfiniteCanvasProps = {
     viewport: ViewportTransform;
     tool: "select" | "pan";
     backgroundMode?: CanvasBackgroundMode;
+    referenceSelectionActive?: boolean;
     onViewportChange: (viewport: ViewportTransform) => void;
     onCanvasMouseDown?: (event: React.PointerEvent<HTMLDivElement>) => void;
     onCanvasDeselect?: () => void;
@@ -18,7 +19,7 @@ type InfiniteCanvasProps = {
     children: React.ReactNode;
 };
 
-export function InfiniteCanvas({ containerRef, viewport, tool, backgroundMode = "lines", onViewportChange, onCanvasMouseDown, onCanvasDeselect, onCanvasDoubleClick, onContextMenu, onDrop, children }: InfiniteCanvasProps) {
+export function InfiniteCanvas({ containerRef, viewport, tool, backgroundMode = "lines", referenceSelectionActive = false, onViewportChange, onCanvasMouseDown, onCanvasDeselect, onCanvasDoubleClick, onContextMenu, onDrop, children }: InfiniteCanvasProps) {
     const theme = canvasThemes[useThemeStore((state) => state.theme)];
     const panState = useRef({
         isPanning: false,
@@ -205,7 +206,7 @@ export function InfiniteCanvas({ containerRef, viewport, tool, backgroundMode = 
 
     const temporaryTool = isControlPressed || isSpacePressed;
     const activeTool = temporaryTool ? (tool === "select" ? "pan" : "select") : tool;
-    const cursor = isPanning ? "grabbing" : activeTool === "pan" ? "grab" : undefined;
+    const cursor = referenceSelectionActive ? "crosshair" : isPanning ? "grabbing" : activeTool === "pan" ? "grab" : undefined;
 
     return (
         <div
@@ -228,6 +229,7 @@ export function InfiniteCanvas({ containerRef, viewport, tool, backgroundMode = 
             >
                 {children}
             </div>
+            {referenceSelectionActive ? <div className="pointer-events-none absolute inset-0 z-[60]" style={{ boxShadow: `inset 0 0 0 2px ${CANVAS_ACCENT}, inset 0 0 0 9999px ${CANVAS_ACCENT}14` }} /> : null}
         </div>
     );
 }

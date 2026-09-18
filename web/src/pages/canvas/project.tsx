@@ -14,7 +14,7 @@ import { uploadMediaFile, type UploadedFile } from "@/services/file-storage";
 import { nanoid } from "nanoid";
 import { getDataUrlByteSize, readImageMeta } from "@/lib/image-utils";
 import { imageReferenceLabel } from "@/lib/image-reference-prompt";
-import { canvasThemes, type CanvasBackgroundMode } from "@/lib/canvas-theme";
+import { CANVAS_ACCENT, canvasThemes, type CanvasBackgroundMode } from "@/lib/canvas-theme";
 import { useAssetStore } from "@/stores/use-asset-store";
 import { useThemeStore } from "@/stores/use-theme-store";
 import { cropDataUrl, splitDataUrl, upscaleDataUrl } from "@/lib/canvas/canvas-image-data";
@@ -3281,6 +3281,7 @@ function InfiniteCanvasPage() {
                     viewport={viewport}
                     tool={canvasTool}
                     backgroundMode={backgroundMode}
+                    referenceSelectionActive={Boolean(referencePickerNodeId)}
                     onViewportChange={(next) => {
                         setViewport(next);
                         setContextMenu(null);
@@ -3412,7 +3413,7 @@ function InfiniteCanvasPage() {
                     </div>
                 </div>
 
-                {referencePickerNodeId ? <button type="button" className="absolute left-1/2 top-4 z-[90] -translate-x-1/2 rounded-full border px-4 py-2 text-sm font-medium shadow-lg backdrop-blur" style={{ background: theme.toolbar.panel, borderColor: theme.toolbar.border }} onClick={exitNodeReferenceSelection}>{t("canvas.references.selectingHint")}</button> : null}
+                {referencePickerNodeId ? <button type="button" className="absolute left-1/2 top-4 z-[90] -translate-x-1/2 rounded-full border px-4 py-2 text-sm font-medium shadow-lg backdrop-blur" style={{ background: CANVAS_ACCENT, borderColor: CANVAS_ACCENT, color: "#fff" }} onClick={exitNodeReferenceSelection}>{t("canvas.references.selectingHint")}</button> : null}
 
                 <CanvasNodeHoverToolbar
                     node={isNodeDragging || isNodeResizing || nodeImageSettingsOpen || Boolean(referencePickerNodeId) || expandedBatchNodeIds.has(toolbarNode?.id || "") ? null : toolbarNode}
