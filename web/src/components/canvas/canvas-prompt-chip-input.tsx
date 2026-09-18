@@ -7,6 +7,7 @@ import { canvasThemes } from "@/lib/canvas-theme";
 import { isImeComposing, isPlainEnterKey } from "@/lib/keyboard-event";
 import { useThemeStore } from "@/stores/use-theme-store";
 import type { CanvasResourceReference } from "@/lib/canvas/canvas-resource-references";
+import { CanvasHoverPreview } from "./canvas-resource-preview";
 
 type Props = {
     value: string;
@@ -195,21 +196,7 @@ export function CanvasPromptChipInput({ value, references, onChange, onSubmit, o
             {mention && candidates.length ? (
                 <MentionMenu rect={mention.rect} references={candidates} activeIndex={Math.min(activeIndex, candidates.length - 1)} theme={theme} onSelect={insertReference} />
             ) : null}
-            {chipPreview ? (
-                createPortal(
-                    <div
-                        className="pointer-events-none fixed z-[1200] -translate-x-1/2 -translate-y-full rounded-lg border p-0.5 shadow-2xl"
-                        style={{ left: chipPreview.rect.left + chipPreview.rect.width / 2, top: chipPreview.rect.top - 6, background: theme.toolbar.panel, borderColor: theme.toolbar.border }}
-                    >
-                        {chipPreview.reference.kind === "video" ? (
-                            <video src={chipPreview.reference.previewUrl} className="max-h-52 w-72 rounded-md object-contain" muted preload="metadata" />
-                        ) : (
-                            <img src={chipPreview.reference.previewUrl} alt={chipPreview.reference.title} className="max-h-52 w-72 rounded-md object-contain" />
-                        )}
-                    </div>,
-                    document.body,
-                )
-            ) : null}
+            {chipPreview ? <CanvasHoverPreview anchorRect={chipPreview.rect} kind={chipPreview.reference.kind} url={chipPreview.reference.previewUrl} title={chipPreview.reference.title} text={chipPreview.reference.text} /> : null}
         </div>
     );
 }
