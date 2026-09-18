@@ -35,7 +35,9 @@ type Props = {
     onHoverNode: (nodeId: string | null) => void;
     onInsertAsset: (payload: InsertAssetPayload) => void;
     referenceSelectionActive?: boolean;
+    referencePickerNodeId?: string | null;
     onSelectReference: (nodeId: string) => void;
+    onRemoveReference: (nodeId: string) => void;
     referenceConnectedNodeIds?: Set<string>;
 };
 
@@ -55,7 +57,11 @@ const STATUS_COLOR: Record<string, string> = {
     idle: "transparent",
 };
 
-export function CanvasSidePanel({ nodes, selectedNodeIds, onFocusNode, onPreviewNode, onHoverNode, onInsertAsset, referenceSelectionActive, onSelectReference, referenceConnectedNodeIds }: Props) {
+// Reference-selection cursors: a plus badge to add, a minus badge to remove.
+const REFERENCE_CURSOR_ADD = "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='26' height='26' viewBox='0 0 26 26'%3E%3Ccircle cx='13' cy='13' r='11' fill='white' fill-opacity='.92'/%3E%3Cpath d='M13 6v14M6 13h14' stroke='%231f2937' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E\") 13 13, copy";
+const REFERENCE_CURSOR_REMOVE = "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='26' height='26' viewBox='0 0 26 26'%3E%3Ccircle cx='13' cy='13' r='11' fill='white' fill-opacity='.92'/%3E%3Cpath d='M6 13h14' stroke='%23ef4444' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E\") 13 13, copy";
+
+export function CanvasSidePanel({ nodes, selectedNodeIds, onFocusNode, onPreviewNode, onHoverNode, onInsertAsset, referenceSelectionActive, referencePickerNodeId, onSelectReference, onRemoveReference, referenceConnectedNodeIds }: Props) {
     const { t } = useTranslation();
     const theme = canvasThemes[useThemeStore((state) => state.theme)];
     const [tab, setTab] = useState<PanelTab>("canvas");
@@ -111,7 +117,7 @@ export function CanvasSidePanel({ nodes, selectedNodeIds, onFocusNode, onPreview
                 </div>
                 <div className="mt-2 min-h-0 flex-1 overflow-hidden">
                     {tab === "canvas" ? (
-                        <CanvasNodesTab nodes={nodes} selectedNodeIds={selectedNodeIds} onFocusNode={onFocusNode} onPreviewNode={onPreviewNode} onHoverNode={onHoverNode} referenceSelectionActive={referenceSelectionActive} onSelectReference={onSelectReference} referenceConnectedNodeIds={referenceConnectedNodeIds} theme={theme} />
+                        <CanvasNodesTab nodes={nodes} selectedNodeIds={selectedNodeIds} onFocusNode={onFocusNode} onPreviewNode={onPreviewNode} onHoverNode={onHoverNode} referenceSelectionActive={referenceSelectionActive} referencePickerNodeId={referencePickerNodeId} onSelectReference={onSelectReference} onRemoveReference={onRemoveReference} referenceConnectedNodeIds={referenceConnectedNodeIds} theme={theme} />
                     ) : tab === "assets" ? (
                         <CanvasAssetsTab onInsert={onInsertAsset} theme={theme} />
                     ) : (
@@ -144,7 +150,7 @@ function nodePreviewText(node: CanvasNodeData) {
     return getNodeDefinition(node.type)?.title || node.type;
 }
 
-function CanvasNodesTab({ nodes, selectedNodeIds, onFocusNode, onPreviewNode, onHoverNode, referenceSelectionActive, onSelectReference, referenceConnectedNodeIds, theme }: { nodes: CanvasNodeData[]; selectedNodeIds: Set<string>; onFocusNode: (nodeId: string) => void; onPreviewNode: (nodeId: string) => void; onHoverNode: (nodeId: string | null) => void; referenceSelectionActive?: boolean; onSelectReference: (nodeId: string) => void; referenceConnectedNodeIds?: Set<string>; theme: CanvasTheme }) {
+function CanvasNodesTab({ nodes, selectedNodeIds, onFocusNode, onPreviewNode, onHoverNode, referenceSelectionActive, referencePickerNodeId, onSelectReference, onRemoveReference, referenceConnectedNodeIds, theme }: { nodes: CanvasNodeData[]; selectedNodeIds: Set<string>; onFocusNode: (nodeId: string) => void; onPreviewNode: (nodeId: string) => void; onHoverNode: (nodeId: string | null) => void; referenceSelectionActive?: boolean; referencePickerNodeId?: string | null; onSelectReference: (nodeId: string) => void; onRemoveReference: (nodeId: string) => void; referenceConnectedNodeIds?: Set<string>; theme: CanvasTheme }) {
     const { message } = App.useApp();
     const { t } = useTranslation();
     useSyncExternalStore(subscribeImagePreviews, getImagePreviewRevision);
@@ -203,9 +209,27 @@ function CanvasNodesTab({ nodes, selectedNodeIds, onFocusNode, onPreviewNode, on
         window.setTimeout(() => onFocusNode(node.id), PRESS_FOCUS_DELAY);
     };
 
+    const isReferenceTarget = (node: CanvasNodeData) => Boolean(referenceSelectionActive && node.id === referencePickerNodeId);
+    const isReferenceConnected = (node: CanvasNodeData) => Boolean(referenceSelectionActive && referenceConnectedNodeIds?.has(node.id)) && node.id !== referencePickerNodeId;
+    const isReferenceUnavailable = (node: CanvasNodeData) => Boolean(referenceSelectionActive) && !isReferenceConnected(node) && (isReferenceTarget(node) || !isCanvasReferenceNode(node, nodes));
+    // Already-added references stay dimmed as a marker; unavailable ones are dimmed and not clickable.
+    const isReferenceDimmed = (node: CanvasNodeData) => Boolean(referenceSelectionActive) && (isReferenceConnected(node) || isReferenceUnavailable(node));
+    const itemTitle = (node: CanvasNodeData) => {
+        if (selectMode) return undefined;
+        if (!referenceSelectionActive) return t("canvas.sidePanel.focusNode");
+        if (isReferenceConnected(node)) return t("canvas.references.remove");
+        return isReferenceUnavailable(node) ? undefined : t("canvas.references.add");
+    };
+    const referenceCursor = (node: CanvasNodeData) => {
+        if (!referenceSelectionActive) return undefined;
+        if (isReferenceConnected(node)) return REFERENCE_CURSOR_REMOVE;
+        return isReferenceUnavailable(node) ? "not-allowed" : REFERENCE_CURSOR_ADD;
+    };
+
     const handleItemClick = (node: CanvasNodeData) => {
         if (referenceSelectionActive) {
-            onSelectReference(node.id);
+            if (isReferenceConnected(node)) onRemoveReference(node.id);
+            else if (!isReferenceUnavailable(node)) onSelectReference(node.id);
             return;
         }
         if (selectMode) {
@@ -213,14 +237,6 @@ function CanvasNodesTab({ nodes, selectedNodeIds, onFocusNode, onPreviewNode, on
             return;
         }
         activateNode(node);
-    };
-
-    // In reference-selection mode, nodes that are already references (or cannot be used) are dimmed, matching the canvas.
-    const isReferenceDisabled = (node: CanvasNodeData) => Boolean(referenceSelectionActive && (referenceConnectedNodeIds?.has(node.id) || !isCanvasReferenceNode(node, nodes)));
-    const itemTitle = (referenceDisabled: boolean) => {
-        if (selectMode) return undefined;
-        if (!referenceSelectionActive) return t("canvas.sidePanel.focusNode");
-        return t(referenceDisabled ? "canvas.references.added" : "canvas.references.add");
     };
 
     const handleExport = async () => {
@@ -278,7 +294,8 @@ function CanvasNodesTab({ nodes, selectedNodeIds, onFocusNode, onPreviewNode, on
                                 const isImage = node.type === CanvasNodeType.Image && node.metadata?.content;
                                 const isChecked = checked.has(node.id);
                                 const active = selectMode ? isChecked : selectedNodeIds.has(node.id);
-                                const referenceDisabled = isReferenceDisabled(node);
+                                const referenceDimmed = isReferenceDimmed(node);
+                                const cursor = referenceCursor(node);
                                 return (
                                     <button
                                         key={node.id}
@@ -290,9 +307,9 @@ function CanvasNodesTab({ nodes, selectedNodeIds, onFocusNode, onPreviewNode, on
                                             const to = event.relatedTarget as Element | null;
                                             if (!to || !to.closest("[data-node-item]")) onHoverNode(null);
                                         }}
-                                        className={cn("group relative flex min-w-0 flex-col rounded-lg p-1 text-left transition hover:bg-black/5 dark:hover:bg-white/5", referenceDisabled && "cursor-not-allowed opacity-40")}
-                                        style={active ? { background: theme.toolbar.activeBg } : undefined}
-                                        title={itemTitle(referenceDisabled)}
+                                        className={cn("group relative flex min-w-0 flex-col rounded-lg p-1 text-left transition hover:bg-black/5 dark:hover:bg-white/5", referenceDimmed && "opacity-40")}
+                                        style={{ ...(active ? { background: theme.toolbar.activeBg } : undefined), ...(cursor ? { cursor } : {}) }}
+                                        title={itemTitle(node)}
                                     >
                                         <span className="relative grid aspect-square w-full place-items-center overflow-hidden rounded-md">
                                             {isImage ? <img src={previewUrlFor(node.metadata?.storageKey) || node.metadata?.content} alt={node.title} className="size-full object-cover" /> : <Icon className="size-6 opacity-60" />}
@@ -318,13 +335,14 @@ function CanvasNodesTab({ nodes, selectedNodeIds, onFocusNode, onPreviewNode, on
                             const isImage = node.type === CanvasNodeType.Image && node.metadata?.content;
                             const isChecked = checked.has(node.id);
                             const active = selectMode ? isChecked : selectedNodeIds.has(node.id);
-                            const referenceDisabled = isReferenceDisabled(node);
+                            const referenceDimmed = isReferenceDimmed(node);
+                            const cursor = referenceCursor(node);
                             return (
                                 <div
                                     key={node.id}
                                     data-node-item
-                                    className={cn("group relative flex items-center rounded-lg transition", depth && "ml-5", active ? "" : "hover:bg-black/5 dark:hover:bg-white/5", referenceDisabled && "cursor-not-allowed opacity-40")}
-                                    style={active ? { background: theme.toolbar.activeBg } : undefined}
+                                    className={cn("group relative flex items-center rounded-lg transition", depth && "ml-5", active ? "" : "hover:bg-black/5 dark:hover:bg-white/5", referenceDimmed && "opacity-40")}
+                                    style={{ ...(active ? { background: theme.toolbar.activeBg } : undefined), ...(cursor ? { cursor } : {}) }}
                                     onMouseEnter={() => onHoverNode(node.id)}
                                     onMouseLeave={(event) => {
                                         const to = event.relatedTarget as Element | null;
@@ -337,7 +355,7 @@ function CanvasNodesTab({ nodes, selectedNodeIds, onFocusNode, onPreviewNode, on
                                             <ChevronRight className={cn("size-3.5 transition-transform", !collapsedGroups.has(node.id) && "rotate-90")} />
                                         </button>
                                     ) : null}
-                                    <button type="button" onClick={() => handleItemClick(node)} className={cn("flex min-w-0 flex-1 items-center gap-3 py-2 pr-2 text-left", node.type === CanvasNodeType.Group && hasChildren ? "pl-0" : "pl-2")} title={itemTitle(referenceDisabled)}>
+                                    <button type="button" onClick={() => handleItemClick(node)} className={cn("flex min-w-0 flex-1 items-center gap-3 py-2 pr-2 text-left", node.type === CanvasNodeType.Group && hasChildren ? "pl-0" : "pl-2")} title={itemTitle(node)}>
                                         {selectMode ? <CheckMark checked={isChecked} theme={theme} /> : null}
                                         <span className="grid size-10 shrink-0 place-items-center overflow-hidden rounded-md">
                                             {isImage ? <img src={previewUrlFor(node.metadata?.storageKey) || node.metadata?.content} alt={node.title} className="size-full object-cover" /> : <Icon className="size-5 opacity-60" />}

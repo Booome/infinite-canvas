@@ -954,6 +954,10 @@ function InfiniteCanvasPage() {
         setConnections((prev) => [...prev, { id: nanoid(), fromNodeId, toNodeId: referencePickerNodeId }]);
     }, [referenceConnectedNodeIds, referencePickerNodeId]);
 
+    const removeNodeReference = useCallback((fromNodeId: string) => {
+        if (referencePickerNodeId) disconnectNodeReference(fromNodeId, referencePickerNodeId);
+    }, [disconnectNodeReference, referencePickerNodeId]);
+
     useEffect(() => {
         if (!referencePickerNodeId) return;
         const exit = (event: KeyboardEvent) => {
@@ -3154,7 +3158,7 @@ function InfiniteCanvasPage() {
 
     return (
         <main className="flex h-full min-h-0 overflow-hidden" style={{ background: theme.canvas.background, color: theme.node.text }}>
-            <CanvasSidePanel nodes={nodes} selectedNodeIds={selectedNodeIds} onFocusNode={focusNode} onPreviewNode={setPreviewNodeId} onHoverNode={setHoverPreviewNodeId} onInsertAsset={handleAssetInsert} referenceSelectionActive={Boolean(referencePickerNodeId)} onSelectReference={selectNodeReference} referenceConnectedNodeIds={referenceConnectedNodeIds} />
+            <CanvasSidePanel nodes={nodes} selectedNodeIds={selectedNodeIds} onFocusNode={focusNode} onPreviewNode={setPreviewNodeId} onHoverNode={setHoverPreviewNodeId} onInsertAsset={handleAssetInsert} referenceSelectionActive={Boolean(referencePickerNodeId)} referencePickerNodeId={referencePickerNodeId} onSelectReference={selectNodeReference} onRemoveReference={removeNodeReference} referenceConnectedNodeIds={referenceConnectedNodeIds} />
             <section className="relative min-w-0 flex-1 overflow-hidden">
                 <CanvasTopBar
                     title={currentProject?.title || t("canvas.projectPage.untitledCanvas")}
