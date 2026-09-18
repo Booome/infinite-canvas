@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 
 import { fetchChannelModels } from "@/services/api/image";
 import type { ModelChannel } from "@/stores/use-config-store";
+import { ThemedTooltip } from "@/components/ui/themed-tooltip";
 
 // Channel model selector: fetch upstream models or add them manually, then include checked models in the channel list.
 export function ModelSelectModal({ open, channel, selectedNames, onConfirm, onClose }: { open: boolean; channel: ModelChannel | null; selectedNames: string[]; onConfirm: (names: string[]) => void; onClose: () => void }) {
@@ -141,9 +142,11 @@ export function ModelSelectModal({ open, channel, selectedNames, onConfirm, onCl
                 <div className="grid grid-cols-1 gap-x-8 gap-y-3 md:grid-cols-2">
                     {visibleList.map((name) => (
                         <Checkbox key={name} checked={selected.has(name)} onChange={(event) => toggle(name, event.target.checked)}>
-                            <span className="truncate" title={name}>
-                                {name}
-                            </span>
+                            <ThemedTooltip title={name}>
+                                <span className="truncate">
+                                    {name}
+                                </span>
+                            </ThemedTooltip>
                         </Checkbox>
                     ))}
                 </div>

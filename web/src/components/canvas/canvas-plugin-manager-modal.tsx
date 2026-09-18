@@ -8,6 +8,7 @@ import { installPluginFromUrl, setPluginEnabled, uninstallPlugin, updatePlugin }
 import { fetchOfficialPlugins, hasUpgrade, type OfficialPluginEntry } from "@/lib/canvas/plugin-registry";
 import { useThemeStore } from "@/stores/use-theme-store";
 import { usePluginStore, type InstalledPlugin } from "@/stores/canvas/use-plugin-store";
+import { ThemedTooltip } from "@/components/ui/themed-tooltip";
 
 export function CanvasPluginManagerModal({ open, onClose }: { open: boolean; onClose: () => void }) {
     const { t } = useTranslation();
@@ -89,17 +90,22 @@ export function CanvasPluginManagerModal({ open, onClose }: { open: boolean; onC
             <Switch size="small" checked={record.enabled} loading={busyId === record.id} onChange={(checked) => runOnPlugin(record, () => setPluginEnabled(record, checked), t(checked ? "canvas.plugins.enabled" : "canvas.plugins.disabled"))} />
             {!record.local && (
                 <>
-                    <Button
-                        type={upgradable ? "primary" : "text"}
-                        size="small"
-                        icon={<RefreshCw className="size-4" />}
-                        loading={busyId === record.id}
-                        title={t(upgradable ? "canvas.plugins.upgradeAvailable" : "canvas.plugins.updateFromSource")}
-                        onClick={() => runOnPlugin(record, async () => void (await updatePlugin(record)), t("canvas.plugins.updated"))}
-                    />
-                    <Popconfirm title={t("canvas.plugins.uninstallTitle")} okText={t("canvas.plugins.uninstall")} cancelText={t("canvas.editors.cancel")} onConfirm={() => uninstallPlugin(record.id)}>
-                        <Button type="text" size="small" danger icon={<Trash2 className="size-4" />} title={t("canvas.plugins.uninstall")} />
-                    </Popconfirm>
+                    <ThemedTooltip title={t(upgradable ? "canvas.plugins.upgradeAvailable" : "canvas.plugins.updateFromSource")}>
+                        <Button
+                            type="text"
+                            size="small"
+                            icon={<RefreshCw className="size-4" />}
+                            loading={busyId === record.id}
+                            onClick={() => runOnPlugin(record, async () => void (await updatePlugin(record)), t("canvas.plugins.updated"))}
+                        />
+                    </ThemedTooltip>
+                    <ThemedTooltip title={t("canvas.plugins.uninstall")}>
+                        <span className="inline-flex">
+                            <Popconfirm title={t("canvas.plugins.uninstallTitle")} okText={t("canvas.plugins.uninstall")} cancelText={t("canvas.editors.cancel")} onConfirm={() => uninstallPlugin(record.id)}>
+                                <Button type="text" size="small" danger icon={<Trash2 className="size-4" />} />
+                            </Popconfirm>
+                        </span>
+                    </ThemedTooltip>
                 </>
             )}
         </>
@@ -110,7 +116,9 @@ export function CanvasPluginManagerModal({ open, onClose }: { open: boolean; onC
     const withUpgradeDot = (icon: ReactNode) => (
         <span className="relative inline-flex">
             {icon}
-            <span className="absolute -right-1 -top-1 size-2 rounded-full" style={{ background: "#22c55e", boxShadow: `0 0 0 2px ${theme.node.fill}` }} title={t("canvas.plugins.newVersion")} />
+            <ThemedTooltip title={t("canvas.plugins.newVersion")}>
+                <span className="absolute -right-1 -top-1 size-2 rounded-full" style={{ background: "#22c55e", boxShadow: `0 0 0 2px ${theme.node.fill}` }} />
+            </ThemedTooltip>
         </span>
     );
 

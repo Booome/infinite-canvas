@@ -9,6 +9,7 @@ import { PromptSourceContentModal } from "./prompt-source-content-modal";
 import { fetchPromptSourceStatuses, refreshAllSources, refreshSource } from "@/services/api/prompts";
 import { PROMPT_SOURCE_INTERVALS, usePromptSourceStore } from "@/stores/use-prompt-source-store";
 import type { PromptSource } from "@/services/api/prompt-source-presets";
+import { ThemedTooltip } from "@/components/ui/themed-tooltip";
 
 const STATUS_QUERY_KEY = ["prompt-source-statuses"];
 
@@ -112,7 +113,7 @@ export function ConfigPromptSources() {
                                         {source.homepage || source.url}
                                     </a>
                                     <span className="tabular-nums">{t("config.promptSources.itemCount", { count: status?.count ?? 0 })}</span>
-                                    {status?.lastError ? <Tag color="error" className="m-0 text-[10px]" title={status.lastError}>{t("config.promptSources.failed")}</Tag> : status?.lastSuccessAt ? <Tag color="success" className="m-0 text-[10px]">{t("config.promptSources.healthy")}</Tag> : <Tag className="m-0 text-[10px]">{t("config.promptSources.unsynced")}</Tag>}
+                                    {status?.lastError ? <ThemedTooltip title={status.lastError}><Tag color="error" className="m-0 text-[10px]">{t("config.promptSources.failed")}</Tag></ThemedTooltip> : status?.lastSuccessAt ? <Tag color="success" className="m-0 text-[10px]">{t("config.promptSources.healthy")}</Tag> : <Tag className="m-0 text-[10px]">{t("config.promptSources.unsynced")}</Tag>}
                                     <span>{status?.lastSuccessAt ? t("config.promptSources.lastSuccess", { time: formatTime(status.lastSuccessAt, i18n.resolvedLanguage) }) : t("config.promptSources.neverFetched")}</span>
                                 </div>
                             </div>

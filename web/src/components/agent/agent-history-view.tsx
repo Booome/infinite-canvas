@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 
 import { canvasThemes } from "@/lib/canvas-theme";
 import type { AgentThreadSummary } from "@/stores/use-agent-store";
+import { ThemedTooltip } from "@/components/ui/themed-tooltip";
 
 export function AgentHistoryView({
     theme,
@@ -49,9 +50,11 @@ export function AgentHistoryView({
                 <div className="flex min-w-0 items-center gap-2 text-xs" style={{ color: theme.node.muted }}>
                     <FolderOpen className="size-3.5 shrink-0" />
                     <span className="shrink-0">{t("agent.history.workspace")}</span>
-                    <span className="min-w-0 truncate" title={workspacePath}>
-                        {workspacePath || t("agent.history.defaultWorkspace")}
-                    </span>
+                    <ThemedTooltip title={workspacePath}>
+                        <span className="min-w-0 truncate">
+                            {workspacePath || t("agent.history.defaultWorkspace")}
+                        </span>
+                    </ThemedTooltip>
                 </div>
                 <div className="flex flex-wrap items-center justify-between gap-2">
                     <div className="flex items-center gap-2 text-sm" style={{ color: theme.node.muted }}>

@@ -6,6 +6,7 @@ import i18n from "@/i18n";
 import { type CanvasTheme } from "@/lib/canvas-theme";
 import { computeMediaSize, inferMediaRatio, inferMediaScale, mediaRatioOptions, mediaScaleOptions, readMediaDimensions } from "@/lib/media-size";
 import type { AiConfig } from "@/stores/use-config-store";
+import { ThemedTooltip } from "@/components/ui/themed-tooltip";
 
 const qualityOptions = [
     { value: "auto", labelKey: "auto" },
@@ -78,9 +79,11 @@ export function ImageSettingsPanel({ config, onConfigChange, theme, showTitle = 
                             <span className="text-xs font-medium" style={{ color: theme.node.muted }}>
                                 {t("settingsPanels.image.align16")}
                             </span>
-                            <span title={t("settingsPanels.image.align16Hint")} onMouseDown={(event) => event.stopPropagation()}>
-                                <Switch size="small" checked={snapDimensionToStep} onChange={setSnapDimensionToStep} />
-                            </span>
+                            <ThemedTooltip title={t("settingsPanels.image.align16Hint")}>
+                                <span onMouseDown={(event) => event.stopPropagation()}>
+                                    <Switch size="small" checked={snapDimensionToStep} onChange={setSnapDimensionToStep} />
+                                </span>
+                            </ThemedTooltip>
                         </div>
                     </div>
                     <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2.5">

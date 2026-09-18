@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 
 export type TransitionVariant = "circle" | "square" | "triangle" | "diamond" | "hexagon" | "rectangle" | "star";
 
-interface AnimatedThemeTogglerProps extends React.ComponentPropsWithoutRef<"button"> {
+interface AnimatedThemeTogglerProps extends React.ComponentPropsWithRef<"button"> {
     duration?: number;
     variant?: TransitionVariant;
     /** When true, the transition expands from the viewport center instead of the button center. */
@@ -82,11 +82,16 @@ function getThemeTransitionClipPaths(variant: TransitionVariant, cx: number, cy:
     }
 }
 
-export const AnimatedThemeToggler = ({ children, className, duration = 400, variant, fromCenter = false, theme, targetTheme, onThemeChange, ...props }: AnimatedThemeTogglerProps) => {
+export const AnimatedThemeToggler = ({ children, className, duration = 400, variant, fromCenter = false, theme, targetTheme, onThemeChange, ref, ...props }: AnimatedThemeTogglerProps) => {
     const { t } = useTranslation();
     const shape = variant ?? "circle";
     const [isDark, setIsDark] = useState(false);
     const buttonRef = useRef<HTMLButtonElement>(null);
+    const setButtonRef = (node: HTMLButtonElement | null) => {
+        buttonRef.current = node;
+        if (typeof ref === "function") ref(node);
+        else if (ref) ref.current = node;
+    };
 
     useEffect(() => {
         if (theme) {
@@ -186,7 +191,7 @@ export const AnimatedThemeToggler = ({ children, className, duration = 400, vari
     }, [shape, fromCenter, duration, isDark, targetTheme, onThemeChange]);
 
     return (
-        <button type="button" ref={buttonRef} onClick={toggleTheme} className={cn(className)} {...props}>
+        <button type="button" ref={setButtonRef} onClick={toggleTheme} className={cn(className)} {...props}>
             {children ?? (isDark ? <Sun /> : <Moon />)}
             <span className="sr-only">{props["aria-label"] || t("theme.toggle")}</span>
         </button>

@@ -11,6 +11,7 @@ import { useAgentStore, type AgentCanvasReference, type AgentPendingApproval, ty
 import { resolveAgentMessageAssetUrl, revealAgentLocalFile } from "@/services/api/canvas-agent";
 import { AgentCanvasReferencePreview, canvasReferenceIcon, canvasReferenceKindLabel } from "./agent-canvas-reference-preview";
 import { agentInlineTokenClass, agentInlineTokenIconClass, agentInlineTokenMediaClass, agentReferenceMarker, parseAgentInlineTokens } from "./agent-chat-inline-tokens";
+import { ThemedTooltip } from "@/components/ui/themed-tooltip";
 
 const streamdownProps = () => ({
     className: "agent-streamdown",
@@ -152,7 +153,11 @@ function AgentUserMessageContent({ text, references, skill, theme }: { text: str
 }
 
 function AgentSkillMention({ skill, theme }: { skill: AgentSkillReference; theme: (typeof canvasThemes)[keyof typeof canvasThemes] }) {
-    return <span className={agentInlineTokenClass} style={{ background: theme.toolbar.panel, borderColor: theme.node.stroke, color: theme.node.text }} title={skill.path}>/{skill.displayName || skill.name}</span>;
+    return (
+        <ThemedTooltip title={skill.path}>
+            <span className={agentInlineTokenClass} style={{ background: theme.toolbar.panel, borderColor: theme.node.stroke, color: theme.node.text }}>/{skill.displayName || skill.name}</span>
+        </ThemedTooltip>
+    );
 }
 
 function AgentCanvasMention({ reference, theme }: { reference: AgentCanvasReference; theme: (typeof canvasThemes)[keyof typeof canvasThemes] }) {
@@ -344,10 +349,14 @@ function AgentCommandEntry({ item, index, theme }: { item: AgentCommandItem; ind
     const content = (
         <>
             <span className="w-4 shrink-0 text-center text-[10px] tabular-nums opacity-50" style={{ color: theme.node.muted }}>{index + 1}</span>
-            <code className="min-w-0 flex-1 truncate text-[11px] leading-5" style={{ color: theme.node.text }} title={item.text}>{item.text || t("agent.message.command")}</code>
-            <span className="shrink-0" style={{ color }} title={status} aria-label={status}>
-                {state.running ? <LoaderCircle className="size-3.5 animate-spin" /> : state.failed ? <XCircle className="size-3.5" /> : <CheckCircle2 className="size-3.5" />}
-            </span>
+            <ThemedTooltip title={item.text}>
+                <code className="min-w-0 flex-1 truncate text-[11px] leading-5" style={{ color: theme.node.text }}>{item.text || t("agent.message.command")}</code>
+            </ThemedTooltip>
+            <ThemedTooltip title={status}>
+                <span className="shrink-0" style={{ color }} aria-label={status}>
+                    {state.running ? <LoaderCircle className="size-3.5 animate-spin" /> : state.failed ? <XCircle className="size-3.5" /> : <CheckCircle2 className="size-3.5" />}
+                </span>
+            </ThemedTooltip>
             {view ? <ChevronRight className={`size-3.5 shrink-0 transition-transform ${open ? "rotate-90" : ""}`} style={{ color: theme.node.muted }} /> : null}
         </>
     );
@@ -499,15 +508,15 @@ function AgentMessageAttachments({ attachments, alignRight }: { attachments: Age
         <>
             <div className={`mt-1.5 flex flex-wrap gap-1.5 ${alignRight ? "justify-end" : "justify-start"}`}>
                 {attachments.map((item) => (
-                    <img
-                        key={item.id}
-                        src={item.url}
-                        alt={item.name}
-                        title={t("agent.message.viewLarge")}
-                        className="size-10 cursor-zoom-in rounded-lg object-cover"
-                        draggable={false}
-                        onClick={() => setPreviewUrl(item.url)}
-                    />
+                    <ThemedTooltip key={item.id} title={t("agent.message.viewLarge")}>
+                        <img
+                            src={item.url}
+                            alt={item.name}
+                            className="size-10 cursor-zoom-in rounded-lg object-cover"
+                            draggable={false}
+                            onClick={() => setPreviewUrl(item.url)}
+                        />
+                    </ThemedTooltip>
                 ))}
             </div>
             {previewUrl ? (

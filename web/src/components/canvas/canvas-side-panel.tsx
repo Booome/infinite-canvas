@@ -21,6 +21,7 @@ import { useThemeStore } from "@/stores/use-theme-store";
 import { CanvasNodeType, type CanvasNodeData } from "@/types/canvas";
 
 import type { InsertAssetPayload } from "./asset-picker-modal";
+import { ThemedTooltip } from "@/components/ui/themed-tooltip";
 
 const PANEL_MOTION_SECONDS = CANVAS_SIDE_PANEL_MOTION_MS / 1000;
 const PANEL_EASE = [0.22, 1, 0.36, 1] as const;
@@ -257,6 +258,8 @@ function CanvasNodesTab({ nodes, selectedNodeIds, onFocusNode, onPreviewNode, on
         }
     };
 
+    const viewLabel = nodeViewMode === "grid" ? t("canvas.sidePanel.viewList") : t("canvas.sidePanel.viewGrid");
+
     return (
         <div className="flex h-full flex-col" onMouseLeave={() => onHoverNode(null)}>
             <div className="flex items-center gap-2 px-3 pb-2.5 pt-1">
@@ -272,15 +275,16 @@ function CanvasNodesTab({ nodes, selectedNodeIds, onFocusNode, onPreviewNode, on
                     {selectMode ? t("common.cancel") : t("canvas.sidePanel.select")}
                 </button>
                 {selectMode ? null : <Select size="small" variant="borderless" className="w-20" value={typeFilter} onChange={setTypeFilter} options={NODE_FILTER_VALUES.map((value) => ({ value, label: value === "all" ? t("common.all") : t(`canvas.sidePanel.filter.${value}`) }))} />}
-                <button
-                    type="button"
-                    onClick={() => setNodeViewMode(nodeViewMode === "grid" ? "list" : "grid")}
-                    className="flex items-center rounded-md px-1.5 py-1 opacity-70 transition hover:bg-black/5 hover:opacity-100 dark:hover:bg-white/10"
-                    title={nodeViewMode === "grid" ? t("canvas.sidePanel.viewList") : t("canvas.sidePanel.viewGrid")}
-                    aria-label={nodeViewMode === "grid" ? t("canvas.sidePanel.viewList") : t("canvas.sidePanel.viewGrid")}
-                >
-                    {nodeViewMode === "grid" ? <Rows3 className="size-3.5" /> : <LayoutGrid className="size-3.5" />}
-                </button>
+                <ThemedTooltip title={viewLabel}>
+                    <button
+                        type="button"
+                        onClick={() => setNodeViewMode(nodeViewMode === "grid" ? "list" : "grid")}
+                        className="flex items-center rounded-md px-1.5 py-1 opacity-70 transition hover:bg-black/5 hover:opacity-100 dark:hover:bg-white/10"
+                        aria-label={viewLabel}
+                    >
+                        {nodeViewMode === "grid" ? <Rows3 className="size-3.5" /> : <LayoutGrid className="size-3.5" />}
+                    </button>
+                </ThemedTooltip>
             </div>
             <div className="px-3 pb-2.5">
                 <Input size="small" allowClear prefix={<Search className="size-3.5 text-stone-400" />} placeholder={t("canvas.sidePanel.searchNodes")} value={keyword} onChange={(e) => setKeyword(e.target.value)} />
@@ -297,31 +301,32 @@ function CanvasNodesTab({ nodes, selectedNodeIds, onFocusNode, onPreviewNode, on
                                 const referenceDimmed = isReferenceDimmed(node);
                                 const cursor = referenceCursor(node);
                                 return (
-                                    <button
-                                        key={node.id}
-                                        type="button"
-                                        data-node-item
-                                        onClick={() => handleItemClick(node)}
-                                        onMouseEnter={() => onHoverNode(node.id)}
-                                        onMouseLeave={(event) => {
-                                            const to = event.relatedTarget as Element | null;
-                                            if (!to || !to.closest("[data-node-item]")) onHoverNode(null);
-                                        }}
-                                        className={cn("group relative flex min-w-0 flex-col rounded-lg p-1 text-left transition hover:bg-black/5 dark:hover:bg-white/5", referenceDimmed && "opacity-40")}
-                                        style={{ ...(active ? { background: theme.toolbar.activeBg } : undefined), ...(cursor ? { cursor } : {}) }}
-                                        title={itemTitle(node)}
-                                    >
-                                        <span className="relative grid aspect-square w-full place-items-center overflow-hidden rounded-md">
-                                            {isImage ? <img src={previewUrlFor(node.metadata?.storageKey) || node.metadata?.content} alt={node.title} decoding="async" className="size-full object-cover" /> : <Icon className="size-6 opacity-60" />}
-                                            {selectMode ? (
-                                                <span className="absolute left-1 top-1">
-                                                    <CheckMark checked={isChecked} theme={theme} />
-                                                </span>
-                                            ) : null}
-                                            {node.metadata?.status && node.metadata.status !== "idle" ? <span className="absolute right-1 top-1 size-1.5 rounded-full" style={{ background: STATUS_COLOR[node.metadata.status] || "transparent" }} /> : null}
-                                        </span>
-                                        <span className="mt-1 block truncate text-xs font-medium leading-snug">{node.title || getNodeDefinition(node.type)?.title || t("canvas.node.untitled")}</span>
-                                    </button>
+                                    <ThemedTooltip title={itemTitle(node)} followCursor>
+                                        <button
+                                            key={node.id}
+                                            type="button"
+                                            data-node-item
+                                            onClick={() => handleItemClick(node)}
+                                            onMouseEnter={() => onHoverNode(node.id)}
+                                            onMouseLeave={(event) => {
+                                                const to = event.relatedTarget as Element | null;
+                                                if (!to || !to.closest("[data-node-item]")) onHoverNode(null);
+                                            }}
+                                            className={cn("group relative flex min-w-0 flex-col rounded-lg p-1 text-left transition hover:bg-black/5 dark:hover:bg-white/5", referenceDimmed && "opacity-40")}
+                                            style={{ ...(active ? { background: theme.toolbar.activeBg } : undefined), ...(cursor ? { cursor } : {}) }}
+                                        >
+                                            <span className="relative grid aspect-square w-full place-items-center overflow-hidden rounded-md">
+                                                {isImage ? <img src={previewUrlFor(node.metadata?.storageKey) || node.metadata?.content} alt={node.title} decoding="async" className="size-full object-cover" /> : <Icon className="size-6 opacity-60" />}
+                                                {selectMode ? (
+                                                    <span className="absolute left-1 top-1">
+                                                        <CheckMark checked={isChecked} theme={theme} />
+                                                    </span>
+                                                ) : null}
+                                                {node.metadata?.status && node.metadata.status !== "idle" ? <span className="absolute right-1 top-1 size-1.5 rounded-full" style={{ background: STATUS_COLOR[node.metadata.status] || "transparent" }} /> : null}
+                                            </span>
+                                            <span className="mt-1 block truncate text-xs font-medium leading-snug">{node.title || getNodeDefinition(node.type)?.title || t("canvas.node.untitled")}</span>
+                                        </button>
+                                    </ThemedTooltip>
                                 );
                             })}
                         </div>
@@ -355,22 +360,26 @@ function CanvasNodesTab({ nodes, selectedNodeIds, onFocusNode, onPreviewNode, on
                                             <ChevronRight className={cn("size-3.5 transition-transform", !collapsedGroups.has(node.id) && "rotate-90")} />
                                         </button>
                                     ) : null}
-                                    <button type="button" onClick={() => handleItemClick(node)} className={cn("flex min-w-0 flex-1 items-center gap-3 py-2 pr-2 text-left", node.type === CanvasNodeType.Group && hasChildren ? "pl-0" : "pl-2")} title={itemTitle(node)}>
-                                        {selectMode ? <CheckMark checked={isChecked} theme={theme} /> : null}
-                                        <span className="grid size-10 shrink-0 place-items-center overflow-hidden rounded-md">
-                                            {isImage ? <img src={previewUrlFor(node.metadata?.storageKey) || node.metadata?.content} alt={node.title} decoding="async" className="size-full object-cover" /> : <Icon className="size-5 opacity-60" />}
-                                        </span>
-                                        <span className="min-w-0 flex-1 space-y-0.5">
-                                            <span className="block truncate text-sm font-medium leading-snug">{node.title || getNodeDefinition(node.type)?.title || t("canvas.node.untitled")}</span>
-                                            <span className="block truncate text-xs leading-snug opacity-50">{nodePreviewText(node)}</span>
-                                        </span>
-                                        {node.metadata?.status && node.metadata.status !== "idle" ? <span className="size-1.5 shrink-0 rounded-full" style={{ background: STATUS_COLOR[node.metadata.status] || "transparent" }} /> : null}
-                                    </button>
+                                    <ThemedTooltip title={itemTitle(node)} followCursor>
+                                        <button type="button" onClick={() => handleItemClick(node)} className={cn("flex min-w-0 flex-1 items-center gap-3 py-2 pr-2 text-left", node.type === CanvasNodeType.Group && hasChildren ? "pl-0" : "pl-2")}>
+                                            {selectMode ? <CheckMark checked={isChecked} theme={theme} /> : null}
+                                            <span className="grid size-10 shrink-0 place-items-center overflow-hidden rounded-md">
+                                                {isImage ? <img src={previewUrlFor(node.metadata?.storageKey) || node.metadata?.content} alt={node.title} decoding="async" className="size-full object-cover" /> : <Icon className="size-5 opacity-60" />}
+                                            </span>
+                                            <span className="min-w-0 flex-1 space-y-0.5">
+                                                <span className="block truncate text-sm font-medium leading-snug">{node.title || getNodeDefinition(node.type)?.title || t("canvas.node.untitled")}</span>
+                                                <span className="block truncate text-xs leading-snug opacity-50">{nodePreviewText(node)}</span>
+                                            </span>
+                                            {node.metadata?.status && node.metadata.status !== "idle" ? <span className="size-1.5 shrink-0 rounded-full" style={{ background: STATUS_COLOR[node.metadata.status] || "transparent" }} /> : null}
+                                        </button>
+                                    </ThemedTooltip>
                                     {selectMode || !isImage ? null : (
                                         <div className="flex shrink-0 flex-col items-center gap-0.5 pr-1.5">
-                                            <button type="button" onClick={() => onPreviewNode(node.id)} className="grid size-7 place-items-center rounded-md opacity-55 transition hover:bg-black/10 hover:opacity-100 dark:hover:bg-white/10" aria-label={t("canvas.sidePanel.preview")} title={t("canvas.sidePanel.preview")}>
-                                                <Eye className="size-3.5" />
-                                            </button>
+                                            <ThemedTooltip title={t("canvas.sidePanel.preview")}>
+                                                <button type="button" onClick={() => onPreviewNode(node.id)} className="grid size-7 place-items-center rounded-md opacity-55 transition hover:bg-black/10 hover:opacity-100 dark:hover:bg-white/10" aria-label={t("canvas.sidePanel.preview")}>
+                                                    <Eye className="size-3.5" />
+                                                </button>
+                                            </ThemedTooltip>
                                         </div>
                                     )}
                                 </div>
@@ -710,19 +719,22 @@ function PromptRow({ item, theme, onInsert, onView }: { item: Prompt; theme: Can
                 <div className="mt-0.5 truncate text-xs leading-snug opacity-50">{item.prompt}</div>
             </button>
             <div className="flex shrink-0 flex-col items-center gap-0.5">
-                <button type="button" onClick={onView} className="grid size-6 place-items-center rounded-md opacity-60 transition hover:bg-black/10 hover:opacity-100 dark:hover:bg-white/10" aria-label={t("canvas.sidePanel.viewDetails")} title={t("canvas.sidePanel.viewDetails")}>
-                    <Eye className="size-3.5" />
-                </button>
-                <button
-                    type="button"
-                    onClick={onInsert}
-                    className="grid size-6 place-items-center rounded-md opacity-60 transition hover:bg-black/10 hover:opacity-100 dark:hover:bg-white/10"
-                    style={{ color: theme.toolbar.activeText }}
-                    aria-label={t("canvas.sidePanel.inserted")}
-                    title={t("canvas.sidePanel.inserted")}
-                >
-                    <Plus className="size-3.5" />
-                </button>
+                <ThemedTooltip title={t("canvas.sidePanel.viewDetails")}>
+                    <button type="button" onClick={onView} className="grid size-6 place-items-center rounded-md opacity-60 transition hover:bg-black/10 hover:opacity-100 dark:hover:bg-white/10" aria-label={t("canvas.sidePanel.viewDetails")}>
+                        <Eye className="size-3.5" />
+                    </button>
+                </ThemedTooltip>
+                <ThemedTooltip title={t("canvas.sidePanel.inserted")}>
+                    <button
+                        type="button"
+                        onClick={onInsert}
+                        className="grid size-6 place-items-center rounded-md opacity-60 transition hover:bg-black/10 hover:opacity-100 dark:hover:bg-white/10"
+                        style={{ color: theme.toolbar.activeText }}
+                        aria-label={t("canvas.sidePanel.inserted")}
+                    >
+                        <Plus className="size-3.5" />
+                    </button>
+                </ThemedTooltip>
             </div>
         </div>
     );

@@ -9,6 +9,7 @@ import { getImagePreviewRevision, previewUrlFor, subscribeImagePreviews } from "
 import { useThemeStore } from "@/stores/use-theme-store";
 import { CanvasNodeType, type CanvasNodeData } from "@/types/canvas";
 import { CanvasHoverPreview } from "./canvas-resource-preview";
+import { ThemedTooltip } from "@/components/ui/themed-tooltip";
 
 export function CanvasNodeReferenceBar({ nodeId, nodes, connectedNodes, disabled = false, onDisconnect, onStartSelection, onFocusNode }: { nodeId: string; nodes: CanvasNodeData[]; connectedNodes: CanvasNodeData[]; disabled?: boolean; onDisconnect?: (fromNodeId: string, toNodeId: string) => void; onStartSelection?: (nodeId: string) => void; onFocusNode?: (nodeId: string) => void }) {
     const { t } = useTranslation();
@@ -19,9 +20,11 @@ export function CanvasNodeReferenceBar({ nodeId, nodes, connectedNodes, disabled
             <div className="mb-1.5 text-[11px] font-medium" style={{ color: theme.node.muted }}>{t("canvas.references.title")}</div>
             <div className="thin-scrollbar flex min-h-12 gap-2 overflow-x-auto pb-1">
                 {references.map(({ node, sourceNodeId }) => <ReferenceItem key={`${sourceNodeId}:${node.id}`} node={node} disabled={disabled} onRemove={() => onDisconnect?.(sourceNodeId, nodeId)} onFocus={onFocusNode ? () => onFocusNode(node.id) : undefined} />)}
-                <button type="button" className="grid size-12 shrink-0 place-items-center rounded-xl border bg-transparent transition enabled:hover:opacity-70 disabled:cursor-not-allowed disabled:opacity-40" style={{ borderColor: theme.toolbar.border, color: theme.node.muted }} title={t("canvas.references.select")} disabled={disabled} onClick={() => onStartSelection?.(nodeId)}>
-                    <Plus className="size-4" />
-                </button>
+                <ThemedTooltip title={t("canvas.references.select")}>
+                    <button type="button" className="grid size-12 shrink-0 place-items-center rounded-xl border bg-transparent transition enabled:hover:opacity-70 disabled:cursor-not-allowed disabled:opacity-40" style={{ borderColor: theme.toolbar.border, color: theme.node.muted }} disabled={disabled} onClick={() => onStartSelection?.(nodeId)}>
+                        <Plus className="size-4" />
+                    </button>
+                </ThemedTooltip>
             </div>
         </div>
     );
@@ -48,7 +51,13 @@ function ReferenceItem({ node, disabled, onRemove, onFocus }: { node: CanvasNode
                 <span className="grid size-full place-items-center overflow-hidden rounded-[inherit]">
                     {(resource?.kind === "image" || node.type === CanvasNodeType.Image) && thumbnail ? <img src={thumbnail} alt="" decoding="async" className="size-full object-cover" /> : (resource?.kind === "video" || node.type === CanvasNodeType.Video) && content ? <video src={content} className="size-full object-cover" muted /> : <Icon className="size-4 opacity-65" />}
                 </span>
-                {disabled ? null : <button type="button" className="absolute right-0 top-0 grid size-5 place-items-center rounded-full border opacity-0 shadow-sm transition-opacity group-hover:opacity-100 focus-visible:opacity-100" style={{ background: theme.toolbar.panel, borderColor: theme.toolbar.border }} aria-label={t("canvas.references.disconnect")} title={t("canvas.references.disconnect")} onMouseDown={(event) => event.stopPropagation()} onClick={(event) => { event.stopPropagation(); onRemove(); }}><X className="size-3" /></button>}
+                {disabled ? null : (
+                    <ThemedTooltip title={t("canvas.references.disconnect")}>
+                        <button type="button" className="absolute right-0 top-0 grid size-5 place-items-center rounded-full border opacity-0 shadow-sm transition-opacity group-hover:opacity-100 focus-visible:opacity-100" style={{ background: theme.toolbar.panel, borderColor: theme.toolbar.border }} aria-label={t("canvas.references.disconnect")} onMouseDown={(event) => event.stopPropagation()} onClick={(event) => { event.stopPropagation(); onRemove(); }}>
+                            <X className="size-3" />
+                        </button>
+                    </ThemedTooltip>
+                )}
             </div>
             {previewRect ? (
                 <CanvasHoverPreview anchorRect={previewRect} kind={resource?.kind || node.type} url={content} title={node.title} text={resource?.text || node.metadata?.content || node.metadata?.prompt || node.title} />

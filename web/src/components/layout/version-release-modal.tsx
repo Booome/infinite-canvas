@@ -4,6 +4,7 @@ import type { TFunction } from "i18next";
 import { useTranslation } from "react-i18next";
 import { useVersionCheck } from "@/hooks/use-version-check";
 import { APP_VERSION } from "@/constant/env";
+import { ThemedTooltip } from "@/components/ui/themed-tooltip";
 
 function getTagColor(type: string) {
     if (type === "新增" || type === "Added") return "green";
@@ -29,18 +30,19 @@ export function VersionReleaseModal({ className, style }: VersionReleaseModalPro
 
     return (
         <>
-            <button
-                type="button"
-                className={className || "shrink-0 cursor-pointer text-xs font-medium text-stone-500 transition hover:text-stone-950 dark:text-stone-400 dark:hover:text-white"}
-                style={style}
-                onClick={openReleaseModal}
-                title={t("version.viewUpdates")}
-            >
-                <span className="relative inline-flex">
-                    {APP_VERSION}
-                    {hasNewVersion ? <span className="absolute -right-1.5 -top-1 size-1.5 rounded-full bg-green-500" /> : null}
-                </span>
-            </button>
+            <ThemedTooltip title={t("version.viewUpdates")}>
+                <button
+                    type="button"
+                    className={className || "shrink-0 cursor-pointer text-xs font-medium text-stone-500 transition hover:text-stone-950 dark:text-stone-400 dark:hover:text-white"}
+                    style={style}
+                    onClick={openReleaseModal}
+                >
+                    <span className="relative inline-flex">
+                        {APP_VERSION}
+                        {hasNewVersion ? <span className="absolute -right-1.5 -top-1 size-1.5 rounded-full bg-green-500" /> : null}
+                    </span>
+                </button>
+            </ThemedTooltip>
             <Modal title={t("version.title")} open={open} width={680} centered footer={null} onCancel={() => setOpen(false)}>
                 <div className="mb-5 grid grid-cols-2 gap-3">
                     <div className="rounded-lg border border-stone-200 p-3 dark:border-stone-800">
