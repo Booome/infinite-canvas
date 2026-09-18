@@ -1134,9 +1134,12 @@ function InfiniteCanvasPage() {
             if (options?.record !== false) recordFocus(nodeId);
             setSelectedNodeIds(new Set([nodeId]));
             setSelectedConnectionId(null);
+            // Pin the hover toolbar to the focused node, matching a canvas click.
+            setToolbarNodeId(nodeId);
             setContextMenu(null);
-            // Open the node panel first so the focus math accounts for it, matching every focus entry point.
-            if (node.type !== CanvasNodeType.Group && !getNodeDefinition(node.type)?.hidePanel) setDialogNodeId(nodeId);
+            // Open or close the node panel exactly like a canvas click does.
+            if (getNodeDefinition(node.type)?.hidePanel) setDialogNodeId((current) => (current === nodeId ? current : null));
+            else if (node.type !== CanvasNodeType.Group) setDialogNodeId(nodeId);
 
             if (focusAnimRef.current) cancelAnimationFrame(focusAnimRef.current);
             const duration = 450;
