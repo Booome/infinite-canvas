@@ -35,3 +35,38 @@ test("fits within 60% of the viewport, without zooming past 100% for small nodes
     expect(focusViewportForNode({ position: { x: 0, y: 0 }, width: 4000, height: 4000 }, size).k).toBeCloseTo(0.12, 6);
     expect(focusViewportForNode({ position: { x: 0, y: 0 }, width: 40, height: 40 }, size).k).toBe(1);
 });
+
+test("keeps an open overlay above and below inside the viewport, with a smaller gap below the panel", () => {
+    const size = { width: 900, height: 600 };
+    const node = { position: { x: 0, y: 0 }, width: 340, height: 240 };
+    const above = 62;
+    const below = 316;
+    const viewport = focusViewportForNode(node, size, { above, below });
+    const top = viewport.y + node.position.y * viewport.k - above;
+    const bottom = viewport.y + (node.position.y + node.height) * viewport.k + below;
+    expect(top).toBeGreaterThanOrEqual(0);
+    expect(bottom).toBeLessThanOrEqual(size.height);
+    expect(size.height - bottom).toBeCloseTo(top / 3, 6);
+});
+
+test("shrinks the node when an open overlay would otherwise not fit", () => {
+    const size = { width: 900, height: 600 };
+    const node = { position: { x: 0, y: 0 }, width: 340, height: 500 };
+    const withoutPanel = focusViewportForNode(node, size);
+    const withPanel = focusViewportForNode(node, size, { below: 316 });
+    expect(withPanel.k).toBeLessThan(withoutPanel.k);
+    expect(withPanel.y + (node.position.y + node.height) * withPanel.k + 316).toBeLessThanOrEqual(size.height);
+});
+
+test("keeps the panel clear of the bottom dock, with half the usual bottom gap", () => {
+    const size = { width: 900, height: 700 };
+    const node = { position: { x: 0, y: 0 }, width: 340, height: 240 };
+    const bottomInset = 76;
+    const below = 316;
+    const viewport = focusViewportForNode(node, size, { below, bottomInset });
+    const top = viewport.y + node.position.y * viewport.k;
+    const bottom = viewport.y + (node.position.y + node.height) * viewport.k + below;
+    const usableBottom = size.height - bottomInset;
+    expect(bottom).toBeLessThanOrEqual(usableBottom);
+    expect(usableBottom - bottom).toBeCloseTo(top / 3, 6);
+});

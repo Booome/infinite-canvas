@@ -155,6 +155,17 @@ export default function CanvasPage() {
     return <InfiniteCanvasPage />;
 }
 
+function measureFocusFrame(container: HTMLDivElement | null, nodeId: string) {
+    if (!container) return {};
+    const nodeRect = container.querySelector<HTMLElement>(`[data-node-id="${nodeId}"]`)?.getBoundingClientRect();
+    const panelRect = container.querySelector<HTMLElement>(`[data-node-id="${nodeId}"] [data-node-panel]`)?.getBoundingClientRect();
+    const toolbarRect = document.querySelector<HTMLElement>(`[data-node-toolbar="${nodeId}"]`)?.getBoundingClientRect();
+    const dockRect = document.querySelector<HTMLElement>("[data-canvas-bottom-toolbar]")?.getBoundingClientRect();
+    const below = nodeRect && panelRect ? panelRect.bottom - nodeRect.bottom : 0;
+    const above = nodeRect && toolbarRect ? nodeRect.top - toolbarRect.top : 0;
+    return { above, below, bottomInset: dockRect && below > 0 ? Math.max(0, container.getBoundingClientRect().bottom - dockRect.top) : 0 };
+}
+
 function InfiniteCanvasPage() {
     const { message, modal } = App.useApp();
     const { t } = useTranslation();
@@ -1086,7 +1097,7 @@ function InfiniteCanvasPage() {
         (nodeId: string) => {
             const node = nodesRef.current.find((item) => item.id === nodeId);
             if (!node) return;
-            const target = focusViewportForNode(node, size);
+            const target = focusViewportForNode(node, size, measureFocusFrame(containerRef.current, nodeId));
             setSelectedNodeIds(new Set([nodeId]));
             setSelectedConnectionId(null);
             setContextMenu(null);
