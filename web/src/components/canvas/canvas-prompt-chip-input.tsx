@@ -4,7 +4,7 @@ import { createPortal } from "react-dom";
 import { FileText, Image as ImageIcon, Music2, Video } from "lucide-react";
 
 import { canvasThemes } from "@/lib/canvas-theme";
-import { isImeComposing, isPlainEnterKey } from "@/lib/keyboard-event";
+import { isImeComposing } from "@/lib/keyboard-event";
 import { useThemeStore } from "@/stores/use-theme-store";
 import type { CanvasResourceReference } from "@/lib/canvas/canvas-resource-references";
 import { CanvasHoverPreview } from "./canvas-resource-preview";
@@ -13,7 +13,6 @@ type Props = {
     value: string;
     references: CanvasResourceReference[];
     onChange: (value: string) => void;
-    onSubmit?: () => void;
     onFocusReference?: (nodeId: string) => void;
     className?: string;
     style?: CSSProperties;
@@ -32,7 +31,7 @@ type Token =
 
 // Prompt-panel contentEditable input: @ references embed thumbnail chips instead of plain label text.
 // Serialization converts chips back to reference labels so the generated value matches the former textarea semantics.
-export function CanvasPromptChipInput({ value, references, onChange, onSubmit, onFocusReference, className, style, placeholder, readOnly = false }: Props) {
+export function CanvasPromptChipInput({ value, references, onChange, onFocusReference, className, style, placeholder, readOnly = false }: Props) {
     const theme = canvasThemes[useThemeStore((state) => state.theme)];
     const editorRef = useRef<HTMLDivElement>(null);
     const composingRef = useRef(false);
@@ -103,6 +102,22 @@ export function CanvasPromptChipInput({ value, references, onChange, onSubmit, o
     const closeMention = () => {
         setMention(null);
         setActiveIndex(0);
+    };
+
+    // Insert a deterministic <br> so serializeNodes turns it into "\n" (Chrome would otherwise wrap lines in <div>).
+    const insertLineBreak = () => {
+        const editor = editorRef.current;
+        const selection = window.getSelection();
+        if (!editor || !selection?.rangeCount) return;
+        const range = selection.getRangeAt(0);
+        range.deleteContents();
+        const br = document.createElement("br");
+        range.insertNode(br);
+        range.setStartAfter(br);
+        range.collapse(true);
+        selection.removeAllRanges();
+        selection.addRange(range);
+        syncFromEditor();
     };
 
     const insertReference = (reference: CanvasResourceReference) => {
@@ -190,9 +205,10 @@ export function CanvasPromptChipInput({ value, references, onChange, onSubmit, o
                         requestAnimationFrame(syncFromEditor);
                         return;
                     }
-                    if (isPlainEnterKey(event) && onSubmit) {
+                    if (event.key === "Enter") {
+                        // Enter inserts a newline; generation only starts from the primary button.
                         event.preventDefault();
-                        onSubmit();
+                        insertLineBreak();
                         return;
                     }
                     requestAnimationFrame(syncMention);
