@@ -1,4 +1,4 @@
-import { CanvasNodeType, type CanvasConnection, type CanvasNodeData, type ConnectionHandle } from "@/types/canvas";
+import { CanvasNodeType, type CanvasConnection, type CanvasNodeData, type ConnectionHandle, type ViewportTransform } from "@/types/canvas";
 
 export function nodeBounds(nodes: CanvasNodeData[]) {
     return nodes.reduce(
@@ -148,4 +148,12 @@ export function normalizeConnection(firstNodeId: string, secondNodeId: string, n
     if (first.type === CanvasNodeType.Config && firstHandleType === "target") return { fromNodeId: second.id, toNodeId: first.id };
     if (first.type === CanvasNodeType.Config) return { fromNodeId: first.id, toNodeId: second.id };
     return { fromNodeId: first.id, toNodeId: second.id };
+}
+
+// Viewport that centers the node in a canvas viewport of the given size, zoomed so it fits within 60% of it.
+export function focusViewportForNode(node: Pick<CanvasNodeData, "position" | "width" | "height">, size: { width: number; height: number }): ViewportTransform {
+    const centerX = node.position.x + node.width / 2;
+    const centerY = node.position.y + node.height / 2;
+    const k = Math.min(Math.max(Math.min((size.width * 0.6) / node.width, (size.height * 0.6) / node.height), 0.05), 1);
+    return { x: size.width / 2 - centerX * k, y: size.height / 2 - centerY * k, k };
 }
