@@ -260,15 +260,15 @@ export function AppConfigPanel({ showDoneButton = false, initialTab = "channels"
                                         />
                                     </Form.Item>
                                 </div>
-                                <Form.Item label={t("config.preferences.regenerateBehavior")} extra={t("config.preferences.regenerateBehaviorDescription")} className="mb-4">
+                                <Form.Item label={t("config.preferences.regenerateBehavior")} className="mb-4">
                                     <Radio.Group value={config.nodeRegenerateBehavior} onChange={(event) => updateConfig("nodeRegenerateBehavior", event.target.value)} className="flex flex-col gap-2">
                                         <Radio value="overwrite">
-                                            <span className="text-sm font-medium">{t("config.preferences.regenerateBehaviorOverwrite")}</span>
-                                            <span className="block text-xs opacity-60">{t("config.preferences.regenerateBehaviorOverwriteDescription")}</span>
+                                            <span className="block text-sm font-medium">{t("config.preferences.regenerateBehaviorOverwrite")}</span>
+                                            <span className="mt-0.5 block text-xs opacity-60">{t("config.preferences.regenerateBehaviorOverwriteDescription")}</span>
                                         </Radio>
                                         <Radio value="new-node">
-                                            <span className="text-sm font-medium">{t("config.preferences.regenerateBehaviorNewNode")}</span>
-                                            <span className="block text-xs opacity-60">{t("config.preferences.regenerateBehaviorNewNodeDescription")}</span>
+                                            <span className="block text-sm font-medium">{t("config.preferences.regenerateBehaviorNewNode")}</span>
+                                            <span className="mt-0.5 block text-xs opacity-60">{t("config.preferences.regenerateBehaviorNewNodeDescription")}</span>
                                         </Radio>
                                     </Radio.Group>
                                 </Form.Item>

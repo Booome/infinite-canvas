@@ -503,7 +503,6 @@ export default {
             canvasImageCount: "画布默认生图张数",
             canvasImageCountDescription: "新建画布生图和配置节点默认使用，单个节点仍可单独覆盖。",
             regenerateBehavior: "已有内容的节点再次生成时",
-            regenerateBehaviorDescription: "在已经生成过内容的节点上点击「生成」按钮时的行为。",
             regenerateBehaviorOverwrite: "原地重新生成（覆盖当前节点）",
             regenerateBehaviorOverwriteDescription: "直接替换该节点的内容和参数，不新建节点。想保留旧结果时，先复制该节点。",
             regenerateBehaviorNewNode: "新建节点（原行为）",
