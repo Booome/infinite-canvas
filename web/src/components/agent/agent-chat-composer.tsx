@@ -1,5 +1,6 @@
 import { useRef, useState, type ReactNode } from "react";
-import { Button, Dropdown, Tooltip } from "antd";
+import { Button, Dropdown } from "antd";
+import { ThemedTooltip } from "@/components/ui/themed-tooltip";
 import { ArrowUp, Check, ChevronUp, Cpu, Gauge, Hand, ImagePlus, LoaderCircle, RefreshCw, ShieldAlert, ShieldCheck, ShieldOff, Square, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -84,9 +85,9 @@ export function AgentChatComposer({
                                     void onAddFiles(event.target.files);
                                     event.target.value = "";
                                 }} />
-                                <Tooltip title={t("agent.composer.uploadImage")}>
+                                <ThemedTooltip title={t("agent.composer.uploadImage")}>
                                     <Button type="text" shape="circle" className="!h-9 !w-9 !min-w-9" disabled={disabled || sending} style={{ color: theme.node.muted }} icon={<ImagePlus className="size-4" />} onClick={() => fileInputRef.current?.click()} aria-label={t("agent.composer.uploadImage")} />
-                                </Tooltip>
+                                </ThemedTooltip>
                             </>
                         ) : null}
                         {onConfirmToolsChange ? <ToolConfirmationMenu confirmTools={Boolean(confirmTools)} theme={theme} onChange={onConfirmToolsChange} /> : null}
@@ -96,9 +97,9 @@ export function AgentChatComposer({
                     </div>
                     <div className="flex shrink-0 items-center gap-1.5">
                         {sending && onStop ? (
-                            <Tooltip title={t("agent.composer.stop")} placement="top"><Button danger shape="circle" className="!h-10 !w-10 !min-w-10" icon={<Square className="size-4" />} onClick={() => void onStop()} aria-label={t("agent.composer.stop")} /></Tooltip>
+                            <ThemedTooltip title={t("agent.composer.stop")} placement="top"><Button danger shape="circle" className="!h-10 !w-10 !min-w-10" icon={<Square className="size-4" />} onClick={() => void onStop()} aria-label={t("agent.composer.stop")} /></ThemedTooltip>
                         ) : (
-                            <Tooltip title={t("agent.composer.send")} placement="top"><Button type="primary" shape="circle" className="!h-10 !w-10 !min-w-10" disabled={!canSubmit} icon={sending ? <LoaderCircle className="size-4 animate-spin" /> : <ArrowUp className="size-4" />} onClick={() => void onSubmit()} aria-label={t("agent.composer.send")} /></Tooltip>
+                            <ThemedTooltip title={t("agent.composer.send")} placement="top"><Button type="primary" shape="circle" className="!h-10 !w-10 !min-w-10" disabled={!canSubmit} icon={sending ? <LoaderCircle className="size-4 animate-spin" /> : <ArrowUp className="size-4" />} onClick={() => void onSubmit()} aria-label={t("agent.composer.send")} /></ThemedTooltip>
                         )}
                     </div>
                 </div>
@@ -115,7 +116,7 @@ function AgentModelControls({ models, model, reasoningEffort, onModelChange, onR
     const [reasoningOpen, setReasoningOpen] = useState(false);
     return (
         <div className="flex min-w-0 items-center gap-1">
-            <Tooltip title={t("agent.composer.model", { model: current.displayName || current.model })} placement="top" open={modelOpen ? false : undefined}>
+            <ThemedTooltip title={t("agent.composer.model", { model: current.displayName || current.model })} placement="top" open={modelOpen ? false : undefined}>
                 <span className="inline-flex shrink-0">
                     <Select value={model} open={modelOpen} onOpenChange={setModelOpen} onValueChange={onModelChange}>
                         <SelectTrigger hideChevron className="h-9 w-9 min-w-9 justify-center gap-0 rounded-full border-0 bg-transparent px-0 text-xs font-medium shadow-none hover:bg-black/5 focus:ring-0 @min-[660px]:w-auto @min-[660px]:min-w-36 @min-[660px]:max-w-36 @min-[660px]:justify-start @min-[660px]:gap-1.5 @min-[660px]:px-2.5 dark:bg-transparent dark:hover:bg-white/10" aria-label={t("agent.composer.selectModel", { model: current.displayName || current.model })}>
@@ -128,8 +129,8 @@ function AgentModelControls({ models, model, reasoningEffort, onModelChange, onR
                         </SelectContent>
                     </Select>
                 </span>
-            </Tooltip>
-            <Tooltip title={t("agent.composer.reasoning", { effort: effortLabel(reasoningEffort) })} placement="top" open={reasoningOpen ? false : undefined}>
+            </ThemedTooltip>
+            <ThemedTooltip title={t("agent.composer.reasoning", { effort: effortLabel(reasoningEffort) })} placement="top" open={reasoningOpen ? false : undefined}>
                 <span className="inline-flex shrink-0">
                     <Select value={reasoningEffort} open={reasoningOpen} onOpenChange={setReasoningOpen} onValueChange={(value) => onReasoningEffortChange(value as AgentReasoningEffort)}>
                         <SelectTrigger hideChevron className="h-9 w-9 min-w-9 justify-center gap-0 rounded-full border-0 bg-transparent px-0 text-xs font-medium shadow-none hover:bg-black/5 focus:ring-0 @min-[660px]:w-auto @min-[660px]:min-w-[4.5rem] @min-[660px]:justify-start @min-[660px]:gap-1.5 @min-[660px]:px-2.5 dark:bg-transparent dark:hover:bg-white/10" aria-label={t("agent.composer.selectReasoning", { effort: effortLabel(reasoningEffort) })}>
@@ -142,7 +143,7 @@ function AgentModelControls({ models, model, reasoningEffort, onModelChange, onR
                         </SelectContent>
                     </Select>
                 </span>
-            </Tooltip>
+            </ThemedTooltip>
         </div>
     );
 }
@@ -157,7 +158,7 @@ function PermissionModeMenu({ permissionMode, theme, onChange }: { permissionMod
     const current = permissionOptions.find((item) => item.key === permissionMode) || permissionOptions[0];
     const [open, setOpen] = useState(false);
     return (
-        <Tooltip title={t("agent.composer.permissionLabel", { mode: current.shortTitle })} placement="top" open={open ? false : undefined}>
+        <ThemedTooltip title={t("agent.composer.permissionLabel", { mode: current.shortTitle })} placement="top" open={open ? false : undefined}>
             <span className="inline-flex shrink-0">
                 <Dropdown
                     trigger={["click"]}
@@ -179,7 +180,7 @@ function PermissionModeMenu({ permissionMode, theme, onChange }: { permissionMod
                     </button>
                 </Dropdown>
             </span>
-        </Tooltip>
+        </ThemedTooltip>
     );
 }
 
@@ -188,7 +189,7 @@ function ToolConfirmationMenu({ confirmTools, theme, onChange }: { confirmTools:
     const [open, setOpen] = useState(false);
     const mode = t(confirmTools ? "agent.composer.tools.manual" : "agent.composer.tools.automatic");
     return (
-        <Tooltip title={t("agent.composer.tools.label", { mode })} placement="top" open={open ? false : undefined}>
+        <ThemedTooltip title={t("agent.composer.tools.label", { mode })} placement="top" open={open ? false : undefined}>
             <span className="inline-flex shrink-0">
                 <Dropdown
                     trigger={["click"]}
@@ -217,7 +218,7 @@ function ToolConfirmationMenu({ confirmTools, theme, onChange }: { confirmTools:
                     </button>
                 </Dropdown>
             </span>
-        </Tooltip>
+        </ThemedTooltip>
     );
 }
 

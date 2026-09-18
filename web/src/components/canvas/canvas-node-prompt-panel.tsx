@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { ArrowUp, LoaderCircle, Maximize2, RotateCcw, Square } from "lucide-react";
-import { Button, Modal, Tooltip } from "antd";
+import { Button, Modal } from "antd";
+import { ThemedTooltip } from "@/components/ui/themed-tooltip";
 import { useTranslation } from "react-i18next";
 
 import { ModelPicker } from "@/components/model-picker";
@@ -107,9 +108,9 @@ export function CanvasNodePromptPanel({ node, nodes, isRunning, onPromptChange, 
 
             <div className="mt-2 flex min-w-0 items-center justify-between gap-2">
                 <div className="flex min-w-0 items-center gap-2">
-                    <Tooltip title={t("canvas.promptPanel.expandEditor")}>
+                    <ThemedTooltip title={t("canvas.promptPanel.expandEditor")}>
                         <Button type="text" disabled={isRunning} className="!h-8 !w-8 !min-w-8 shrink-0 !rounded-full !bg-transparent !p-0" style={{ color: theme.node.text }} icon={<Maximize2 className="size-3.5" />} onClick={openExpandedEditor} aria-label={t("canvas.promptPanel.expandEditor")} />
-                    </Tooltip>
+                    </ThemedTooltip>
                     <CanvasPromptLibrary onSelect={updatePrompt} disabled={isRunning} />
                     {mode === "image" ? (
                         <>
@@ -124,9 +125,9 @@ export function CanvasNodePromptPanel({ node, nodes, isRunning, onPromptChange, 
                                 onOpenChange={onImageSettingsOpenChange}
                             />
                             {generationSnapshot && onResetGeneration ? (
-                                <Tooltip title={t("canvas.promptPanel.resetGeneration")}>
+                                <ThemedTooltip title={t("canvas.promptPanel.resetGeneration")}>
                                     <Button type="text" disabled={isRunning || !canResetGeneration} className="!h-8 !w-8 !min-w-8 shrink-0 !rounded-full !bg-transparent !p-0" style={{ color: theme.node.text }} icon={<RotateCcw className="size-3.5" />} onClick={resetGeneration} aria-label={t("canvas.promptPanel.resetGeneration")} />
-                                </Tooltip>
+                                </ThemedTooltip>
                             ) : null}
                         </>
                     ) : mode === "video" ? (

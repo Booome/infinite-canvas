@@ -1,4 +1,5 @@
-import { Button, Tooltip } from "antd";
+import { Button } from "antd";
+import { ThemedTooltip } from "@/components/ui/themed-tooltip";
 import { ChevronDown } from "lucide-react";
 
 import { canvasThemes } from "@/lib/canvas-theme";
@@ -17,7 +18,7 @@ export function AgentScrollToBottom({
     onClick: () => void;
 }) {
     return (
-        <Tooltip title={title} placement="top">
+        <ThemedTooltip title={title} placement="top">
             <Button
                 type="text"
                 shape="circle"
@@ -27,6 +28,6 @@ export function AgentScrollToBottom({
                 icon={<ChevronDown className="size-4" />}
                 onClick={onClick}
             />
-        </Tooltip>
+        </ThemedTooltip>
     );
 }

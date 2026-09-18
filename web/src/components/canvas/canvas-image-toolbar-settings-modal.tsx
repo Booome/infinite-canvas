@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
-import { Button, Card, Checkbox, Form, Modal, Space, Switch, Tag, Tooltip, Typography, theme as antdTheme } from "antd";
+import { Button, Card, Checkbox, Form, Modal, Space, Switch, Tag, Typography, theme as antdTheme } from "antd";
+import { ThemedTooltip } from "@/components/ui/themed-tooltip";
 import { Ellipsis, Image as ImageIcon, Settings2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -221,13 +222,13 @@ export function ImageToolSettingsModal({
 
 function PreviewToolbarItem({ tool, showLabels }: { tool: PreviewTool; showLabels: boolean }) {
     return (
-        <Tooltip title={tool.title}>
+        <ThemedTooltip title={tool.title}>
             <span className="flex h-12 shrink-0 items-center px-1.5" style={{ color: tool.danger ? "#ef4444" : undefined }}>
                 <span className={`flex h-9 items-center rounded-lg px-2 ${showLabels ? "gap-2" : "justify-center"}`}>
                     {tool.icon}
                     {showLabels ? <span className="whitespace-nowrap">{tool.label}</span> : null}
                 </span>
             </span>
-        </Tooltip>
+        </ThemedTooltip>
     );
 }

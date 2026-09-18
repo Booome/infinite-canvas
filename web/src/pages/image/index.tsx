@@ -1,6 +1,7 @@
 import { ArrowLeft, ArrowRight, BookOpen, CheckSquare, ClipboardPaste, Download, FolderPlus, History, ImagePlus, LoaderCircle, PenLine, Plus, SlidersHorizontal, Sparkles, Trash2, Upload } from "lucide-react";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
-import { App, Button, Checkbox, Drawer, Empty, Image, Input, Modal, Tag, Tooltip, Typography } from "antd";
+import { App, Button, Checkbox, Drawer, Empty, Image, Input, Modal, Tag, Typography } from "antd";
+import { ThemedTooltip } from "@/components/ui/themed-tooltip";
 import localforage from "localforage";
 import { saveAs } from "file-saver";
 import { useTranslation } from "react-i18next";
@@ -598,21 +599,21 @@ function ResultImageCard({
                     <span>{formatDuration(image.durationMs)}</span>
                 </div>
                 <div className="grid min-w-0 grid-cols-3 gap-2">
-                    <Tooltip title={t("common.addToAssets")}>
+                    <ThemedTooltip title={t("common.addToAssets")}>
                         <Button className={RESULT_ACTION_BUTTON_CLASS} size="small" icon={<FolderPlus className="size-3.5" />} onClick={() => void onSaveAsset(image, index)}>
                             {t("common.addToAssets")}
                         </Button>
-                    </Tooltip>
-                    <Tooltip title={t("imageWorkbench.addReference")}>
+                    </ThemedTooltip>
+                    <ThemedTooltip title={t("imageWorkbench.addReference")}>
                         <Button className={RESULT_ACTION_BUTTON_CLASS} size="small" icon={<PenLine className="size-3.5" />} onClick={() => void onEdit(image, index)}>
                             {t("imageWorkbench.addReference")}
                         </Button>
-                    </Tooltip>
-                    <Tooltip title={t("common.download")}>
+                    </ThemedTooltip>
+                    <ThemedTooltip title={t("common.download")}>
                         <Button className={RESULT_ACTION_BUTTON_CLASS} size="small" icon={<Download className="size-3.5" />} onClick={() => onDownload(image, index)}>
                             {t("common.download")}
                         </Button>
-                    </Tooltip>
+                    </ThemedTooltip>
                 </div>
             </div>
         </div>

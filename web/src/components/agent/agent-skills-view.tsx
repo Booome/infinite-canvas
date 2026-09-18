@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { App, Button, Collapse, Dropdown, Form, Input, Modal, Select, Switch, Tooltip } from "antd";
+import { App, Button, Collapse, Dropdown, Form, Input, Modal, Select, Switch } from "antd";
+import { ThemedTooltip } from "@/components/ui/themed-tooltip";
 import type { MenuProps } from "antd";
 import { Check, ChevronDown, CircleAlert, FilePenLine, LoaderCircle, LockKeyhole, MessageSquareText, Plus, RefreshCw, Search, Sparkles, Trash2, Workflow } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -277,9 +278,9 @@ export function AgentSkillsView({ clientId }: { clientId: string }) {
                         <div className="mt-0.5 text-xs" style={{ color: theme.node.muted }}>{t("agent.skillManager.localDescription")}</div>
                     </div>
                     <div className="flex items-center gap-1">
-                        <Tooltip title={t("agent.skillManager.reload")}>
+                        <ThemedTooltip title={t("agent.skillManager.reload")}>
                             <Button type="text" shape="circle" className="!h-8 !w-8 !min-w-8" aria-label={t("agent.skillManager.reloadSkill")} disabled={!connected || loading} icon={<RefreshCw className={`size-4 ${loading ? "animate-spin" : ""}`} />} onClick={() => void refresh()} />
-                        </Tooltip>
+                        </ThemedTooltip>
                         <Dropdown trigger={["click"]} placement="bottomRight" open={createMenuOpen} onOpenChange={setCreateMenuOpen} disabled={!connected || !clientId || Boolean(generatingSource)} menu={createMenu}>
                             <Button type="text" className="!h-8 !px-2" aria-haspopup="menu" aria-expanded={createMenuOpen} disabled={!connected || !clientId} loading={Boolean(generatingSource)} icon={<Plus className="size-4" />}>
                                 {t("agent.skillManager.createSkill")} <ChevronDown className="size-3.5 opacity-60" />
@@ -319,12 +320,12 @@ export function AgentSkillsView({ clientId }: { clientId: string }) {
                                         <div className="min-w-0 flex-1">
                                             <div className="flex min-w-0 items-center gap-2">
                                                 <span className="truncate text-sm font-medium">{skill.interface?.displayName || skill.name}</span>
-                                                {!skill.managed ? <Tooltip title={t("agent.skillManager.externalReadonly")}><LockKeyhole className="size-3.5 shrink-0" style={{ color: theme.node.faint }} /></Tooltip> : null}
+                                                {!skill.managed ? <ThemedTooltip title={t("agent.skillManager.externalReadonly")}><LockKeyhole className="size-3.5 shrink-0" style={{ color: theme.node.faint }} /></ThemedTooltip> : null}
                                             </div>
                                             <div className="mt-1 line-clamp-2 text-xs leading-5" style={{ color: theme.node.muted }}>{skill.interface?.shortDescription || skill.shortDescription || skill.description || t("agent.skillManager.noDescription")}</div>
-                                            <Tooltip title={skill.path}>
+                                            <ThemedTooltip title={skill.path}>
                                                 <div className="mt-1.5 truncate text-[11px]" style={{ color: theme.node.faint }}>{t(`agent.skillManager.scopes.${skill.scope}`)} · {skill.name}</div>
-                                            </Tooltip>
+                                            </ThemedTooltip>
                                         </div>
                                     </div>
                                     <div className="mt-2 flex items-center justify-between gap-2 pl-7">
@@ -336,8 +337,8 @@ export function AgentSkillsView({ clientId }: { clientId: string }) {
                                             <Button type="text" size="small" disabled={!connected || !skill.enabled || Boolean(busySkill)} icon={selected ? <Check className="size-3.5" /> : <Sparkles className="size-3.5" />} onClick={() => useSkill(skill)}>{t(selected ? "agent.skillManager.selected" : "agent.skillManager.use")}</Button>
                                             {skill.managed ? (
                                                 <>
-                                                    <Tooltip title={t("common.edit")}><Button type="text" shape="circle" size="small" aria-label={t("agent.skillManager.editNamed", { name: skill.interface?.displayName || skill.name })} disabled={!connected || Boolean(busySkill) || Boolean(generatingSource)} icon={<FilePenLine className="size-3.5" />} onClick={() => void openEdit(skill)} /></Tooltip>
-                                                    <Tooltip title={t("common.delete")}><Button danger type="text" shape="circle" size="small" aria-label={t("agent.skillManager.deleteNamed", { name: skill.interface?.displayName || skill.name })} disabled={!connected || Boolean(busySkill) || Boolean(generatingSource)} icon={<Trash2 className="size-3.5" />} onClick={() => confirmDelete(skill)} /></Tooltip>
+                                                    <ThemedTooltip title={t("common.edit")}><Button type="text" shape="circle" size="small" aria-label={t("agent.skillManager.editNamed", { name: skill.interface?.displayName || skill.name })} disabled={!connected || Boolean(busySkill) || Boolean(generatingSource)} icon={<FilePenLine className="size-3.5" />} onClick={() => void openEdit(skill)} /></ThemedTooltip>
+                                                    <ThemedTooltip title={t("common.delete")}><Button danger type="text" shape="circle" size="small" aria-label={t("agent.skillManager.deleteNamed", { name: skill.interface?.displayName || skill.name })} disabled={!connected || Boolean(busySkill) || Boolean(generatingSource)} icon={<Trash2 className="size-3.5" />} onClick={() => confirmDelete(skill)} /></ThemedTooltip>
                                                 </>
                                             ) : null}
                                         </div>

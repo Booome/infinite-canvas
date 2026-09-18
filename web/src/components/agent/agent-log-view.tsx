@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Button, Segmented, Tooltip } from "antd";
+import { Button, Segmented } from "antd";
+import { ThemedTooltip } from "@/components/ui/themed-tooltip";
 import copyToClipboard from "copy-to-clipboard";
 import { CheckCircle2, ChevronDown, CircleAlert, CircleDot, Copy, Trash2, TriangleAlert } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -208,15 +209,15 @@ function LogActions({ logs, lastError, context, onClear, onCopy }: { logs: Agent
     const { t } = useTranslation();
     return (
         <div className="flex shrink-0 items-center gap-0.5">
-            <Tooltip title={t("agent.logs.copyAll")}>
+            <ThemedTooltip title={t("agent.logs.copyAll")}>
                 <Button type="text" size="small" shape="circle" aria-label={t("agent.logs.copyAll")} icon={<Copy className="size-3.5" />} onClick={() => onCopy()} />
-            </Tooltip>
-            <Tooltip title={t("agent.logs.copyLastError")}>
+            </ThemedTooltip>
+            <ThemedTooltip title={t("agent.logs.copyLastError")}>
                 <Button type="text" size="small" shape="circle" aria-label={t("agent.logs.copyLastError")} disabled={!lastError} icon={<CircleAlert className="size-3.5" />} onClick={() => lastError && onCopy(formatLogText([lastError], context), t("agent.logs.lastErrorCopied"))} />
-            </Tooltip>
-            <Tooltip title={t("agent.logs.clear")}>
+            </ThemedTooltip>
+            <ThemedTooltip title={t("agent.logs.clear")}>
                 <Button danger type="text" size="small" shape="circle" aria-label={t("agent.logs.clear")} disabled={!logs.length} icon={<Trash2 className="size-3.5" />} onClick={onClear} />
-            </Tooltip>
+            </ThemedTooltip>
         </div>
     );
 }

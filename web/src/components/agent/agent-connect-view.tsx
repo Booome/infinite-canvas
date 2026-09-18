@@ -1,5 +1,6 @@
 import { Fragment } from "react";
-import { App, Button, Input, Tooltip } from "antd";
+import { App, Button, Input } from "antd";
+import { ThemedTooltip } from "@/components/ui/themed-tooltip";
 import copyToClipboard from "copy-to-clipboard";
 import { Copy, KeyRound, Link2, PlugZap } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -57,9 +58,9 @@ export function AgentConnectView({
                             {label}
                         </span>
                         <code className="min-w-0 flex-1 overflow-x-auto whitespace-nowrap text-[11px] leading-5">{command}</code>
-                        <Tooltip title={t("agent.connect.copyCommand")}>
+                        <ThemedTooltip title={t("agent.connect.copyCommand")}>
                             <Button size="small" type="text" className="!h-6 !w-6 !min-w-6" icon={<Copy className="size-3.5" />} onClick={() => copyCommand(command)} />
-                        </Tooltip>
+                        </ThemedTooltip>
                     </div>
                 ))}
             </div>
@@ -87,9 +88,9 @@ export function AgentConnectView({
                                     {command ? (
                                         <div className="mt-2 flex items-center gap-2 rounded-md border bg-transparent px-2 py-1.5" style={{ borderColor: theme.node.stroke, color: theme.node.text }}>
                                             <code className="min-w-0 flex-1 overflow-x-auto whitespace-nowrap text-[11px] leading-5">{command}</code>
-                                            <Tooltip title={t("agent.connect.copyCommand")}>
+                                            <ThemedTooltip title={t("agent.connect.copyCommand")}>
                                                 <Button size="small" type="text" className="!h-6 !w-6 !min-w-6" icon={<Copy className="size-3.5" />} onClick={() => copyCommand(command)} />
-                                            </Tooltip>
+                                            </ThemedTooltip>
                                         </div>
                                     ) : null}
                                 </div>

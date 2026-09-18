@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
-import { Button, Modal, Segmented, Tooltip } from "antd";
+import { Button, Modal, Segmented } from "antd";
+import { ThemedTooltip } from "@/components/ui/themed-tooltip";
 import { Check, X, ZoomIn, ZoomOut } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -103,15 +104,15 @@ export function CanvasNodeCropDialog({ dataUrl, open, onClose, onConfirm }: { da
                 </div>
 
                 <div className="flex items-center justify-center gap-1">
-                    <Tooltip title={t("canvas.editors.zoomOut")}>
+                    <ThemedTooltip title={t("canvas.editors.zoomOut")}>
                         <Button type="text" icon={<ZoomOut className="size-4" />} disabled={!viewport.canZoomOut} aria-label={t("canvas.editors.zoomOut")} onClick={viewport.zoomOut} />
-                    </Tooltip>
+                    </ThemedTooltip>
                     <button type="button" className="min-w-14 text-center text-xs font-semibold tabular-nums opacity-70" onClick={viewport.resetZoom}>
                         {Math.round(viewport.zoom * 100)}%
                     </button>
-                    <Tooltip title={t("canvas.editors.zoomIn")}>
+                    <ThemedTooltip title={t("canvas.editors.zoomIn")}>
                         <Button type="text" icon={<ZoomIn className="size-4" />} disabled={!viewport.canZoomIn} aria-label={t("canvas.editors.zoomIn")} onClick={viewport.zoomIn} />
-                    </Tooltip>
+                    </ThemedTooltip>
                     <span className="ml-2 text-xs opacity-55">{t("canvas.editors.cropHint")}</span>
                 </div>
 

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { createPortal } from "react-dom";
-import { Button, Input, Modal, Slider, Tooltip } from "antd";
+import { Button, Input, Modal, Slider } from "antd";
+import { ThemedTooltip } from "@/components/ui/themed-tooltip";
 import { Brush, Eraser, ImagePlus, Redo2, RotateCcw, Undo2, WandSparkles, ZoomIn, ZoomOut } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -279,22 +280,22 @@ export function CanvasNodeMaskEditDialog({ dataUrl, open, onClose, onConfirm }: 
                     </div>
 
                     <div className="flex items-center justify-between rounded-lg border border-black/10 px-2 py-1 dark:border-white/10">
-                        <Tooltip title={t("canvas.editors.undoMaskTitle")}>
+                        <ThemedTooltip title={t("canvas.editors.undoMaskTitle")}>
                             <Button type="text" icon={<Undo2 className="size-4" />} disabled={!historySize} aria-label={t("canvas.editors.undoMask")} onClick={undoMask} />
-                        </Tooltip>
-                        <Tooltip title={t("canvas.editors.redoMaskTitle")}>
+                        </ThemedTooltip>
+                        <ThemedTooltip title={t("canvas.editors.redoMaskTitle")}>
                             <Button type="text" icon={<Redo2 className="size-4" />} disabled={!redoSize} aria-label={t("canvas.editors.redoMask")} onClick={redoMask} />
-                        </Tooltip>
+                        </ThemedTooltip>
                         <div className="flex items-center gap-1">
-                            <Tooltip title={t("canvas.editors.zoomOut")}>
+                            <ThemedTooltip title={t("canvas.editors.zoomOut")}>
                                 <Button type="text" icon={<ZoomOut className="size-4" />} disabled={!viewport.canZoomOut} aria-label={t("canvas.editors.zoomOut")} onClick={viewport.zoomOut} />
-                            </Tooltip>
+                            </ThemedTooltip>
                             <button type="button" className="min-w-14 text-center text-xs font-semibold tabular-nums opacity-70" onClick={viewport.resetZoom}>
                                 {Math.round(viewport.zoom * 100)}%
                             </button>
-                            <Tooltip title={t("canvas.editors.zoomIn")}>
+                            <ThemedTooltip title={t("canvas.editors.zoomIn")}>
                                 <Button type="text" icon={<ZoomIn className="size-4" />} disabled={!viewport.canZoomIn} aria-label={t("canvas.editors.zoomIn")} onClick={viewport.zoomIn} />
-                            </Tooltip>
+                            </ThemedTooltip>
                         </div>
                     </div>
 

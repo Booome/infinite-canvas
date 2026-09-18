@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
-import { App, Button, Tooltip } from "antd";
+import { App, Button } from "antd";
+import { ThemedTooltip } from "@/components/ui/themed-tooltip";
 import dayjs from "dayjs";
 import { Bot, History, MessageSquare, PanelRightClose, PlugZap, Plus, Sparkles, Terminal } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -1326,11 +1327,11 @@ export function LocalAgentPanel({ embedded, headless, autoConnect }: { embedded?
                             <Bot className="size-4" />
                         </span>
                         <div className="hidden text-base font-semibold leading-5 @min-[560px]:block">Agent</div>
-                        <Tooltip title={t("agent.panel.connectionSettings", { status: connectionStatus })} placement="bottom">
+                        <ThemedTooltip title={t("agent.panel.connectionSettings", { status: connectionStatus })} placement="bottom">
                             <Button size="small" type="text" className="!h-8 !w-8 !min-w-8 !px-0 @min-[560px]:!w-auto @min-[560px]:!min-w-0 @min-[560px]:!px-[7px]" aria-label={t("agent.panel.connectionSettingsLabel", { status: connectionStatus })} icon={<PlugZap className="size-3.5" style={{ color: connectionStatusColor }} />} onClick={() => setAgentState({ activeTab: "setup" })}>
                                 <span className="hidden @min-[560px]:inline">{connectionStatus}</span>
                             </Button>
-                        </Tooltip>
+                        </ThemedTooltip>
                     </div>
                 }
                 items={[
@@ -1345,14 +1346,14 @@ export function LocalAgentPanel({ embedded, headless, autoConnect }: { embedded?
                 }}
                 right={
                     <>
-                        <Tooltip title={t("agent.history.newThread")} placement="bottom">
+                        <ThemedTooltip title={t("agent.history.newThread")} placement="bottom">
                             <Button size="small" type="text" className="!h-8 !w-8 !min-w-8 !px-0 @min-[560px]:!w-auto @min-[560px]:!min-w-0 @min-[560px]:!px-[7px]" aria-label={t("agent.history.newThread")} disabled={!connected || loadingThreads || sending || waiting || conversationBusy} icon={<Plus className="size-3.5" />} onClick={startNewThread}>
                                 <span className="hidden @min-[560px]:inline">{t("agent.history.newThread")}</span>
                             </Button>
-                        </Tooltip>
-                        <Tooltip title={t("agent.panel.collapse")}>
+                        </ThemedTooltip>
+                        <ThemedTooltip title={t("agent.panel.collapse")}>
                             <Button type="text" shape="circle" className="!h-8 !w-8 !min-w-8" aria-label={t("agent.panel.collapseLabel")} style={{ color: theme.node.muted }} icon={<PanelRightClose className="size-4" />} onClick={closePanel} />
-                        </Tooltip>
+                        </ThemedTooltip>
                     </>
                 }
             />
