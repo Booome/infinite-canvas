@@ -57,9 +57,9 @@ const STATUS_COLOR: Record<string, string> = {
     idle: "transparent",
 };
 
-// Reference-selection cursors: a plus badge to add, a minus badge to remove.
-const REFERENCE_CURSOR_ADD = "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='26' height='26' viewBox='0 0 26 26'%3E%3Ccircle cx='13' cy='13' r='11' fill='white' fill-opacity='.92'/%3E%3Cpath d='M13 6v14M6 13h14' stroke='%231f2937' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E\") 13 13, copy";
-const REFERENCE_CURSOR_REMOVE = "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='26' height='26' viewBox='0 0 26 26'%3E%3Ccircle cx='13' cy='13' r='11' fill='white' fill-opacity='.92'/%3E%3Cpath d='M6 13h14' stroke='%23ef4444' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E\") 13 13, copy";
+// Reference-selection cursors: a plus badge to add, a minus badge to remove (white fill, thin dark outline).
+const REFERENCE_CURSOR_ADD = "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Ccircle cx='14' cy='14' r='11' fill='white' stroke='%231f2937' stroke-width='1.5'/%3E%3Cpath d='M14 8v12M8 14h12' stroke='%231f2937' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E\") 14 14, copy";
+const REFERENCE_CURSOR_REMOVE = "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Ccircle cx='14' cy='14' r='11' fill='white' stroke='%231f2937' stroke-width='1.5'/%3E%3Cpath d='M8 14h12' stroke='%231f2937' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E\") 14 14, copy";
 
 export function CanvasSidePanel({ nodes, selectedNodeIds, onFocusNode, onPreviewNode, onHoverNode, onInsertAsset, referenceSelectionActive, referencePickerNodeId, onSelectReference, onRemoveReference, referenceConnectedNodeIds }: Props) {
     const { t } = useTranslation();
@@ -221,7 +221,7 @@ function CanvasNodesTab({ nodes, selectedNodeIds, onFocusNode, onPreviewNode, on
         return isReferenceUnavailable(node) ? undefined : t("canvas.references.add");
     };
     const referenceCursor = (node: CanvasNodeData) => {
-        if (!referenceSelectionActive) return undefined;
+        if (!referenceSelectionActive) return "pointer";
         if (isReferenceConnected(node)) return REFERENCE_CURSOR_REMOVE;
         return isReferenceUnavailable(node) ? "not-allowed" : REFERENCE_CURSOR_ADD;
     };
