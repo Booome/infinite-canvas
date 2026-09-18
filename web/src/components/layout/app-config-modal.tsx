@@ -242,6 +242,14 @@ export function AppConfigPanel({ showDoneButton = false, initialTab = "channels"
                                             onBlur={(event) => updateConfig("canvasImageCount", normalizeImageCount(event.target.value))}
                                         />
                                     </Form.Item>
+                                    <Form.Item label={t("config.preferences.focusHistoryLimit")} extra={t("config.preferences.focusHistoryLimitDescription")} className="mb-4">
+                                        <Input
+                                            type="number"
+                                            min={1}
+                                            value={config.focusHistoryLimit}
+                                            onChange={(event) => updateConfig("focusHistoryLimit", Math.max(1, Math.floor(Number(event.target.value) || 1)))}
+                                        />
+                                    </Form.Item>
                                     <Form.Item label={t("config.preferences.audioVoice")} className="mb-4">
                                         <Select value={config.audioVoice} options={audioVoiceOptions} onChange={(value) => updateConfig("audioVoice", value)} />
                                     </Form.Item>

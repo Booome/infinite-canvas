@@ -56,6 +56,7 @@ export type AiConfig = {
     proxyUrl: string;
     nodeRegenerateBehavior: "new-node" | "overwrite";
     autoFocusOnSelect: boolean;
+    focusHistoryLimit: number;
 };
 
 export type WebdavSyncConfig = {
@@ -125,6 +126,7 @@ export const defaultConfig: AiConfig = {
     proxyUrl: DEFAULT_LOCAL_PROXY_URL,
     nodeRegenerateBehavior: "new-node",
     autoFocusOnSelect: false,
+    focusHistoryLimit: 100,
 };
 
 export const defaultWebdavSyncConfig: WebdavSyncConfig = {
@@ -279,6 +281,7 @@ export const useConfigStore = create<ConfigStore>()(
                         proxyUrl: config.proxyUrl || DEFAULT_LOCAL_PROXY_URL,
                         nodeRegenerateBehavior: config.nodeRegenerateBehavior === "overwrite" ? "overwrite" : "new-node",
                         autoFocusOnSelect: Boolean(config.autoFocusOnSelect),
+                        focusHistoryLimit: Math.max(1, Math.floor(Number(config.focusHistoryLimit) || 100)),
                     },
                 };
             },

@@ -1100,11 +1100,35 @@ function InfiniteCanvasPage() {
         setContextMenu(null);
     }, [size.height, size.width]);
 
+    const [focusHistoryNav, setFocusHistoryNav] = useState({ canBack: false, canForward: false });
+    const focusHistoryRef = useRef<{ ids: string[]; index: number }>({ ids: [], index: -1 });
+
+    const refreshFocusHistoryNav = useCallback(() => {
+        const { ids, index } = focusHistoryRef.current;
+        const nodeIds = new Set(nodesRef.current.map((node) => node.id));
+        setFocusHistoryNav((prev) => {
+            const canBack = ids.slice(0, Math.max(0, index)).some((id) => nodeIds.has(id));
+            const canForward = ids.slice(index + 1).some((id) => nodeIds.has(id));
+            return prev.canBack === canBack && prev.canForward === canForward ? prev : { canBack, canForward };
+        });
+    }, []);
+
+    const recordFocus = useCallback((nodeId: string) => {
+        const history = focusHistoryRef.current;
+        if (history.ids[history.index] === nodeId) return;
+        const limit = Math.max(1, Math.floor(Number(useConfigStore.getState().config.focusHistoryLimit) || 100));
+        let ids = [...history.ids.slice(0, history.index + 1), nodeId];
+        if (ids.length > limit) ids = ids.slice(ids.length - limit);
+        focusHistoryRef.current = { ids, index: ids.length - 1 };
+        refreshFocusHistoryNav();
+    }, [refreshFocusHistoryNav]);
+
     const focusNode = useCallback(
-        (nodeId: string) => {
+        (nodeId: string, options?: { record?: boolean }) => {
             const node = nodesRef.current.find((item) => item.id === nodeId);
             if (!node) return;
             setHoverPreviewNodeId(null);
+            if (options?.record !== false) recordFocus(nodeId);
             const target = focusViewportForNode(node, size, measureFocusFrame(containerRef.current, nodeId));
             setSelectedNodeIds(new Set([nodeId]));
             setSelectedConnectionId(null);
@@ -1124,13 +1148,39 @@ function InfiniteCanvasPage() {
             };
             focusAnimRef.current = requestAnimationFrame(step);
         },
-        [size.height, size.width],
+        [size.height, size.width, recordFocus],
     );
 
     const focusNodeRef = useRef(focusNode);
     useEffect(() => {
         focusNodeRef.current = focusNode;
     }, [focusNode]);
+
+    const focusHistoryStep = useCallback(
+        (direction: -1 | 1) => {
+            const history = focusHistoryRef.current;
+            const nodeIds = new Set(nodesRef.current.map((node) => node.id));
+            let index = history.index + direction;
+            while (index >= 0 && index < history.ids.length && !nodeIds.has(history.ids[index])) index += direction;
+            if (index < 0 || index >= history.ids.length) return;
+            focusHistoryRef.current = { ...history, index };
+            refreshFocusHistoryNav();
+            focusNodeRef.current(history.ids[index], { record: false });
+        },
+        [refreshFocusHistoryNav],
+    );
+
+    const focusBack = useCallback(() => focusHistoryStep(-1), [focusHistoryStep]);
+    const focusForward = useCallback(() => focusHistoryStep(1), [focusHistoryStep]);
+
+    useEffect(() => {
+        focusHistoryRef.current = { ids: [], index: -1 };
+        setFocusHistoryNav({ canBack: false, canForward: false });
+    }, [projectId]);
+
+    useEffect(() => {
+        if (focusHistoryRef.current.ids.length) refreshFocusHistoryNav();
+    }, [nodes, refreshFocusHistoryNav]);
 
     const focusSelectedNode = useCallback(() => {
         const nodeId = selectedNodeIdsRef.current.values().next().value;
@@ -3367,6 +3417,10 @@ function InfiniteCanvasPage() {
                     selectedCount={selectedNodeIds.size}
                     canvasTool={canvasTool}
                     onFocusSelected={focusSelectedNode}
+                    canFocusBack={focusHistoryNav.canBack}
+                    canFocusForward={focusHistoryNav.canForward}
+                    onFocusBack={focusBack}
+                    onFocusForward={focusForward}
                     canUndo={historyState.canUndo}
                     canRedo={historyState.canRedo}
                     backgroundMode={backgroundMode}
