@@ -18,6 +18,7 @@ type Props = {
     className?: string;
     style?: CSSProperties;
     placeholder?: string;
+    readOnly?: boolean;
 };
 
 type MentionState = {
@@ -31,7 +32,7 @@ type Token =
 
 // Prompt-panel contentEditable input: @ references embed thumbnail chips instead of plain label text.
 // Serialization converts chips back to reference labels so the generated value matches the former textarea semantics.
-export function CanvasPromptChipInput({ value, references, onChange, onSubmit, onFocusReference, className, style, placeholder }: Props) {
+export function CanvasPromptChipInput({ value, references, onChange, onSubmit, onFocusReference, className, style, placeholder, readOnly = false }: Props) {
     const theme = canvasThemes[useThemeStore((state) => state.theme)];
     const editorRef = useRef<HTMLDivElement>(null);
     const composingRef = useRef(false);
@@ -138,24 +139,29 @@ export function CanvasPromptChipInput({ value, references, onChange, onSubmit, o
             ) : null}
             <div
                 ref={editorRef}
-                contentEditable
+                contentEditable={!readOnly}
                 suppressContentEditableWarning
                 role="textbox"
                 aria-multiline="true"
+                aria-readonly={readOnly || undefined}
                 className={`${className || ""} overflow-y-auto whitespace-pre-wrap break-words outline-none`}
-                style={{ ...style, cursor: "text" }}
+                style={{ ...style, cursor: readOnly ? "default" : "text" }}
                 onInput={() => {
+                    if (readOnly) return;
                     if (!composingRef.current) syncFromEditor();
                 }}
                 onCompositionStart={() => {
+                    if (readOnly) return;
                     composingRef.current = true;
                 }}
                 onCompositionEnd={() => {
+                    if (readOnly) return;
                     composingRef.current = false;
                     syncFromEditor();
                 }}
                 onKeyDown={(event: KeyboardEvent<HTMLDivElement>) => {
                     event.stopPropagation();
+                    if (readOnly) return;
                     if (isImeComposing(event)) return;
                     if (mention && candidates.length) {
                         if (event.key === "ArrowDown") {
