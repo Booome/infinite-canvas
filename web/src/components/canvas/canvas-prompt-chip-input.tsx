@@ -104,7 +104,6 @@ export function CanvasPromptChipInput({ value, references, onChange, onFocusRefe
         setActiveIndex(0);
     };
 
-    // Insert a deterministic <br> so serializeNodes turns it into "\n" (Chrome would otherwise wrap lines in <div>).
     const insertLineBreak = () => {
         const editor = editorRef.current;
         const selection = window.getSelection();
@@ -206,7 +205,6 @@ export function CanvasPromptChipInput({ value, references, onChange, onFocusRefe
                         return;
                     }
                     if (event.key === "Enter") {
-                        // Enter inserts a newline; generation only starts from the primary button.
                         event.preventDefault();
                         insertLineBreak();
                         return;

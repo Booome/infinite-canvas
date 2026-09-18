@@ -1,18 +1,14 @@
 import type { AiConfig } from "@/stores/use-config-store";
 import { CanvasNodeType, type CanvasGenerationMode, type CanvasNodeMetadata, type CanvasNodeTypeId } from "@/types/canvas";
 
-// The generation mode a node type generates in; plugin nodes fall back to image.
 export function generationModeForNodeType(type: CanvasNodeTypeId): CanvasGenerationMode {
     return type === CanvasNodeType.Text ? "text" : type === CanvasNodeType.Video ? "video" : type === CanvasNodeType.Audio ? "audio" : "image";
 }
 
-// Generation parameters remembered per canvas (and per mode), so a new generation menu starts from the last used values.
-// Inputs (prompt, composer content, references) are deliberately excluded.
 export const GENERATION_PARAM_KEYS = ["model", "reasoningEffort", "size", "quality", "background", "count", "textCount", "seconds", "vquality", "generateAudio", "watermark", "videoMode", "audioVoice", "audioFormat", "audioSpeed", "audioInstructions"] as const;
 
 export type CanvasGenerationDefaults = Partial<Record<CanvasGenerationMode, CanvasNodeMetadata>>;
 
-// The preference values a fresh generation menu starts from, before any remembered parameters are layered on.
 export function preferenceMetadataForMode(config: AiConfig, mode: CanvasGenerationMode): CanvasNodeMetadata {
     switch (mode) {
         case "video":
@@ -26,11 +22,9 @@ export function preferenceMetadataForMode(config: AiConfig, mode: CanvasGenerati
     }
 }
 
-// Overlay remembered parameters onto a config, mapping the metadata field names back to AiConfig keys.
 export function applyGenerationDefaults(config: AiConfig, mode: CanvasGenerationMode, defaults?: CanvasNodeMetadata): AiConfig {
     if (!defaults) return config;
     const next = { ...config };
-    // resolveModelForCapability reads the per-capability field, not `model`.
     if (defaults.model) {
         if (mode === "image") next.imageModel = defaults.model;
         else if (mode === "video") next.videoModel = defaults.model;
@@ -50,7 +44,6 @@ export function applyGenerationDefaults(config: AiConfig, mode: CanvasGeneration
     if (defaults.audioFormat) next.audioFormat = defaults.audioFormat;
     if (defaults.audioSpeed) next.audioSpeed = defaults.audioSpeed;
     if (defaults.audioInstructions) next.audioInstructions = defaults.audioInstructions;
-    // Image count resolves through canvasImageCount first, so route the remembered count there to win over the preference.
     if (defaults.count) {
         if (mode === "image") next.canvasImageCount = String(defaults.count);
         else next.count = String(defaults.count);

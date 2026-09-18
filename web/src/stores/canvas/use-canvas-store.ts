@@ -20,7 +20,6 @@ export type CanvasProject = {
     backgroundMode: CanvasBackgroundMode;
     showImageInfo: boolean;
     viewport: ViewportTransform;
-    // Last used generation parameters per mode, so a new generation menu starts from them. Travels with the project on export/import.
     generationDefaults?: CanvasGenerationDefaults;
 };
 

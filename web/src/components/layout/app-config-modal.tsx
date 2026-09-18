@@ -71,7 +71,6 @@ export function AppConfigPanel({ showDoneButton = false, initialTab = "channels"
     const locale = i18n.resolvedLanguage as AppLocale;
     useEffect(() => setActiveTab(initialTab), [initialTab]);
 
-    // Show a bottom hint while the settings content still has more to scroll.
     useEffect(() => {
         const sentinel = configScrollSentinelRef.current;
         if (!sentinel) return;

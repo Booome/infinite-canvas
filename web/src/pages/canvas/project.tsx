@@ -253,7 +253,6 @@ function InfiniteCanvasPage() {
     const generationDefaultsRef = useRef(generationDefaults);
     generationDefaultsRef.current = generationDefaults;
 
-    // Initial metadata for a new generation menu: remembered parameters first, then the preference defaults.
     const buildConfigNodeMetadata = useCallback(
         (mode: CanvasGenerationMode = "image"): CanvasNodeMetadata => {
             const base = preferenceMetadataForMode(effectiveConfig, mode);
@@ -717,7 +716,6 @@ function InfiniteCanvasPage() {
 
     const visibleNodes = useMemo(() => {
         const inView = nodes.filter((node) => node.position.x + node.width > viewBounds.left && node.position.x < viewBounds.right && node.position.y + node.height > viewBounds.top && node.position.y < viewBounds.bottom);
-        // Keep the panel node mounted even when off-screen so focusing it can measure its panel before it scrolls into view.
         if (!dialogNodeId || inView.some((node) => node.id === dialogNodeId)) return inView;
         const dialogNode = nodes.find((node) => node.id === dialogNodeId);
         return dialogNode ? [dialogNode, ...inView] : inView;
@@ -1142,19 +1140,15 @@ function InfiniteCanvasPage() {
             if (options?.record !== false) recordFocus(nodeId);
             setSelectedNodeIds(new Set([nodeId]));
             setSelectedConnectionId(null);
-            // Pin the hover toolbar to the focused node, matching a canvas click.
             setToolbarNodeId(nodeId);
             setContextMenu(null);
-            // Open or close the node panel exactly like a canvas click does.
             if (getNodeDefinition(node.type)?.hidePanel) setDialogNodeId((current) => (current === nodeId ? current : null));
             else if (node.type !== CanvasNodeType.Group) setDialogNodeId(nodeId);
 
             if (focusAnimRef.current) cancelAnimationFrame(focusAnimRef.current);
             const duration = 450;
             const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
-            // Measure after the panel has rendered so the node and its overlay are placed together.
             focusAnimRef.current = requestAnimationFrame(() => {
-                // Read the container rect here: callers inside memoized nodes hold a stale closure, so `size` can lag behind.
                 const containerRect = containerRef.current?.getBoundingClientRect();
                 const viewportSize = containerRect ? { width: containerRect.width, height: containerRect.height } : size;
                 const target = focusViewportForNode(node, viewportSize, measureFocusFrame(containerRef.current, nodeId));
@@ -1428,7 +1422,6 @@ function InfiniteCanvasPage() {
                 setDialogNodeId((current) => (current === clickedNodeId ? current : null));
             } else if (clickedNode?.type !== CanvasNodeType.Group) {
                 setDialogNodeId(clickedNodeId);
-                // focusNode opens the panel and measures after it renders, matching the toolbar/list focus.
                 if (useConfigStore.getState().config.autoFocusOnSelect) focusNodeRef.current(clickedNodeId);
             }
         }
@@ -1891,10 +1884,8 @@ function InfiniteCanvasPage() {
             const nodeMode = generationModeForNodeType(node?.type || CanvasNodeType.Image);
             const currentMode = (node?.metadata?.generationMode || nodeMode) as CanvasGenerationMode;
             const nextMode = (safePatch.generationMode || currentMode) as CanvasGenerationMode;
-            // Switching mode refills the parameters remembered for that mode (falling back to preference defaults).
             const effectivePatch = nextMode !== currentMode ? { ...buildConfigNodeMetadata(nextMode), ...safePatch } : safePatch;
             setNodes((prev) => prev.map((item) => (item.id === nodeId ? applyNodeConfigPatch(item, effectivePatch) : item)));
-            // Remember generation parameters per mode so the next generation menu starts from them.
             if (Object.keys(effectivePatch).some((key) => (GENERATION_PARAM_KEYS as readonly string[]).includes(key))) {
                 setGenerationDefaults((current) => updateGenerationDefaults(current, nextMode, effectivePatch));
             }
