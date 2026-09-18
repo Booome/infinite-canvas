@@ -2347,7 +2347,7 @@ function InfiniteCanvasPage() {
             }
 
             setRunningNodeId(nodeId);
-            const overwriteExisting = effectiveConfig.nodeRegenerateBehavior !== "new-node";
+            const overwriteExisting = effectiveConfig.nodeRegenerateBehavior === "overwrite";
             const runController = startGenerationRequest(nodeId, nodeId, nodeId);
             const sourceTextContent = sourceNode?.type === CanvasNodeType.Text ? sourceNode.metadata?.content?.trim() || "" : "";
             const editingTextNode = mode === "text" && Boolean(sourceTextContent);
@@ -2403,6 +2403,7 @@ function InfiniteCanvasPage() {
                             prompt: effectivePrompt,
                             status: NODE_STATUS_LOADING,
                             images: imageIds.map((id) => ({ id, status: NODE_STATUS_LOADING, content: "", naturalWidth: 0, naturalHeight: 0, bytes: 0, mimeType: "" })),
+                            primaryImageId: undefined,
                             ...generationMetadata,
                         },
                     };

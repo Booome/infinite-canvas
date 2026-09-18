@@ -122,7 +122,7 @@ export const defaultConfig: AiConfig = {
     canvasImageCount: "3",
     proxyEnabled: false,
     proxyUrl: DEFAULT_LOCAL_PROXY_URL,
-    nodeRegenerateBehavior: "overwrite",
+    nodeRegenerateBehavior: "new-node",
 };
 
 export const defaultWebdavSyncConfig: WebdavSyncConfig = {
@@ -275,7 +275,7 @@ export const useConfigStore = create<ConfigStore>()(
                         canvasImageCount: config.canvasImageCount || "3",
                         proxyEnabled: Boolean(config.proxyEnabled),
                         proxyUrl: config.proxyUrl || DEFAULT_LOCAL_PROXY_URL,
-                        nodeRegenerateBehavior: config.nodeRegenerateBehavior === "new-node" ? "new-node" : "overwrite",
+                        nodeRegenerateBehavior: config.nodeRegenerateBehavior === "overwrite" ? "overwrite" : "new-node",
                     },
                 };
             },
