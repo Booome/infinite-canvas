@@ -1,6 +1,6 @@
 import { App, Button, Form, Input, Modal, Progress, Radio, Select, Switch, Tabs } from "antd";
 import type { TFunction } from "i18next";
-import { Cloud, Download, Pencil, Plus, RefreshCw, Trash2, Upload, Wifi } from "lucide-react";
+import { ChevronDown, Cloud, Download, Pencil, Plus, RefreshCw, Trash2, Upload, Wifi } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -57,6 +57,8 @@ export function AppConfigPanel({ showDoneButton = false, initialTab = "channels"
     const [syncingWebdav, setSyncingWebdav] = useState(false);
     const [webdavSyncStatus, setWebdavSyncStatus] = useState("");
     const [webdavDomainProgress, setWebdavDomainProgress] = useState(createWebdavDomainProgress);
+    const configScrollSentinelRef = useRef<HTMLDivElement>(null);
+    const [showScrollHint, setShowScrollHint] = useState(false);
     const config = useConfigStore((state) => state.config);
     const webdav = useConfigStore((state) => state.webdav);
     const updateConfig = useConfigStore((state) => state.updateConfig);
@@ -68,6 +70,15 @@ export function AppConfigPanel({ showDoneButton = false, initialTab = "channels"
     const editingChannel = config.channels.find((channel) => channel.id === editingChannelId) || null;
     const locale = i18n.resolvedLanguage as AppLocale;
     useEffect(() => setActiveTab(initialTab), [initialTab]);
+
+    // Show a bottom hint while the settings content still has more to scroll.
+    useEffect(() => {
+        const sentinel = configScrollSentinelRef.current;
+        if (!sentinel) return;
+        const observer = new IntersectionObserver(([entry]) => setShowScrollHint(!entry.isIntersecting));
+        observer.observe(sentinel);
+        return () => observer.disconnect();
+    }, []);
 
     const saveConfig = (nextConfig: AiConfig) => {
         (Object.keys(nextConfig) as Array<keyof AiConfig>).forEach((key) => updateConfig(key, nextConfig[key]));
@@ -242,14 +253,6 @@ export function AppConfigPanel({ showDoneButton = false, initialTab = "channels"
                                             onBlur={(event) => updateConfig("canvasImageCount", normalizeImageCount(event.target.value))}
                                         />
                                     </Form.Item>
-                                    <Form.Item label={t("config.preferences.focusHistoryLimit")} extra={t("config.preferences.focusHistoryLimitDescription")} className="mb-4">
-                                        <Input
-                                            type="number"
-                                            min={1}
-                                            value={config.focusHistoryLimit}
-                                            onChange={(event) => updateConfig("focusHistoryLimit", Math.max(1, Math.floor(Number(event.target.value) || 1)))}
-                                        />
-                                    </Form.Item>
                                     <Form.Item label={t("config.preferences.audioVoice")} className="mb-4">
                                         <Select value={config.audioVoice} options={audioVoiceOptions} onChange={(value) => updateConfig("audioVoice", value)} />
                                     </Form.Item>
@@ -279,6 +282,21 @@ export function AppConfigPanel({ showDoneButton = false, initialTab = "channels"
                                             <span className="mt-0.5 block text-xs opacity-60">{t("config.preferences.regenerateBehaviorNewNodeDescription")}</span>
                                         </Radio>
                                     </Radio.Group>
+                                </Form.Item>
+                                <Form.Item className="mb-4">
+                                    <div className="flex items-center justify-between gap-3">
+                                        <span className="text-sm" title={t("config.preferences.focusHistoryLimitDescription")}>
+                                            {t("config.preferences.focusHistoryLimit")}
+                                        </span>
+                                        <div className="w-1/4">
+                                            <Input
+                                                type="number"
+                                                min={1}
+                                                value={config.focusHistoryLimit}
+                                                onChange={(event) => updateConfig("focusHistoryLimit", Math.max(1, Math.floor(Number(event.target.value) || 1)))}
+                                            />
+                                        </div>
+                                    </div>
                                 </Form.Item>
                                 <Form.Item className="mb-4">
                                     <div className="flex items-center justify-between gap-3">
@@ -358,6 +376,10 @@ export function AppConfigPanel({ showDoneButton = false, initialTab = "channels"
                     </Button>
                 </div>
             ) : null}
+            <div ref={configScrollSentinelRef} className="h-px w-full" />
+            <div className="pointer-events-none sticky bottom-0 -ml-6 -mr-3 flex justify-center bg-gradient-to-t from-white pb-0.5 pt-8 transition-opacity duration-200 dark:from-[#1f1f1f]" style={{ opacity: showScrollHint ? 1 : 0 }}>
+                <ChevronDown className="size-4 text-stone-400" />
+            </div>
             <ChannelEditorDrawer open={Boolean(editingChannel)} channel={editingChannel} onSave={saveChannel} onClose={() => setEditingChannelId("")} />
         </>
     );
@@ -381,6 +403,7 @@ export function AppConfigModal() {
             centered
             onCancel={() => setConfigDialogOpen(false)}
             styles={{ body: { maxHeight: "72vh", overflowY: "auto", paddingRight: 12 } }}
+            classNames={{ body: "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden" }}
             footer={null}
         >
             <AppConfigPanel showDoneButton initialTab={configTab} />
