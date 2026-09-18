@@ -1,10 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, KeyboardEvent, MouseEvent, PointerEvent } from "react";
 import { createPortal } from "react-dom";
-import { Image } from "antd";
 import { FileText, Image as ImageIcon, Music2, Video } from "lucide-react";
 
-import i18n from "@/i18n";
 import { canvasThemes } from "@/lib/canvas-theme";
 import { isImeComposing, isPlainEnterKey } from "@/lib/keyboard-event";
 import { useThemeStore } from "@/stores/use-theme-store";
@@ -15,6 +13,7 @@ type Props = {
     references: CanvasResourceReference[];
     onChange: (value: string) => void;
     onSubmit?: () => void;
+    onFocusReference?: (nodeId: string) => void;
     className?: string;
     style?: CSSProperties;
     placeholder?: string;
@@ -31,7 +30,7 @@ type Token =
 
 // Prompt-panel contentEditable input: @ references embed thumbnail chips instead of plain label text.
 // Serialization converts chips back to reference labels so the generated value matches the former textarea semantics.
-export function CanvasPromptChipInput({ value, references, onChange, onSubmit, className, style, placeholder }: Props) {
+export function CanvasPromptChipInput({ value, references, onChange, onSubmit, onFocusReference, className, style, placeholder }: Props) {
     const theme = canvasThemes[useThemeStore((state) => state.theme)];
     const editorRef = useRef<HTMLDivElement>(null);
     const composingRef = useRef(false);
@@ -40,7 +39,6 @@ export function CanvasPromptChipInput({ value, references, onChange, onSubmit, c
     const lastEmittedRef = useRef(value);
     const [mention, setMention] = useState<MentionState | null>(null);
     const [activeIndex, setActiveIndex] = useState(0);
-    const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [chipPreview, setChipPreview] = useState<{ reference: CanvasResourceReference; rect: DOMRect } | null>(null);
     const handleHoverPreview = useCallback((reference: CanvasResourceReference | null, rect: DOMRect | null) => {
         setChipPreview(reference && rect ? { reference, rect } : null);
@@ -71,11 +69,11 @@ export function CanvasPromptChipInput({ value, references, onChange, onSubmit, c
                 return;
             }
             const reference = referenceByLabel.get(token.label);
-            if (reference) editor.append(createReferenceChip(reference, theme, setImagePreview, handleHoverPreview));
+            if (reference) editor.append(createReferenceChip(reference, theme, handleHoverPreview, onFocusReference));
             else editor.append(document.createTextNode(token.label));
         });
         lastEmittedRef.current = value;
-    }, [tokens, referenceByLabel, theme, value, handleHoverPreview]);
+    }, [tokens, referenceByLabel, theme, value, handleHoverPreview, onFocusReference]);
 
     const emit = (next: string) => {
         lastEmittedRef.current = next;
@@ -109,7 +107,7 @@ export function CanvasPromptChipInput({ value, references, onChange, onSubmit, c
         const editor = editorRef.current;
         if (!editor) return;
         removeActiveMention();
-        const chip = createReferenceChip(reference, theme, setImagePreview, handleHoverPreview);
+        const chip = createReferenceChip(reference, theme, handleHoverPreview, onFocusReference);
         const space = document.createTextNode(" ");
         const selection = window.getSelection();
         const range = selection?.rangeCount ? selection.getRangeAt(0) : null;
@@ -197,7 +195,6 @@ export function CanvasPromptChipInput({ value, references, onChange, onSubmit, c
             {mention && candidates.length ? (
                 <MentionMenu rect={mention.rect} references={candidates} activeIndex={Math.min(activeIndex, candidates.length - 1)} theme={theme} onSelect={insertReference} />
             ) : null}
-            {imagePreview ? <Image src={imagePreview} alt={i18n.t("canvas.composer.imagePreview")} style={{ display: "none" }} preview={{ visible: true, src: imagePreview, onVisibleChange: (visible) => !visible && setImagePreview(null) }} /> : null}
             {chipPreview ? (
                 createPortal(
                     <div
@@ -291,13 +288,21 @@ function ReferencePreview({ reference }: { reference: CanvasResourceReference })
     );
 }
 
-function createReferenceChip(reference: CanvasResourceReference, theme: (typeof canvasThemes)[keyof typeof canvasThemes], onImagePreview: (url: string) => void, onHoverPreview: (reference: CanvasResourceReference | null, rect: DOMRect | null) => void) {
+function createReferenceChip(reference: CanvasResourceReference, theme: (typeof canvasThemes)[keyof typeof canvasThemes], onHoverPreview: (reference: CanvasResourceReference | null, rect: DOMRect | null) => void, onFocusReference?: (nodeId: string) => void) {
     const wrapper = document.createElement("span");
     wrapper.contentEditable = "false";
     wrapper.dataset.refLabel = reference.label;
     if ((reference.kind === "image" || reference.kind === "video") && reference.previewUrl) {
         wrapper.addEventListener("mouseenter", () => onHoverPreview(reference, wrapper.getBoundingClientRect()));
         wrapper.addEventListener("mouseleave", () => onHoverPreview(null, null));
+    }
+    if (onFocusReference) {
+        wrapper.style.cursor = "pointer";
+        wrapper.addEventListener("click", (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            onFocusReference(reference.nodeId);
+        });
     }
     if (reference.kind === "image" && reference.previewUrl) {
         const image = document.createElement("img");
@@ -306,11 +311,6 @@ function createReferenceChip(reference: CanvasResourceReference, theme: (typeof 
         image.className = "size-6 rounded object-cover";
         wrapper.className = "mx-px inline-flex size-6 items-center justify-center overflow-hidden rounded align-middle";
         wrapper.appendChild(image);
-        wrapper.addEventListener("click", (event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            onImagePreview(reference.previewUrl || "");
-        });
     } else {
         wrapper.className = "mx-px inline-flex h-6 max-w-40 items-center justify-center overflow-hidden rounded-md border px-1 text-xs leading-none align-middle";
         Object.assign(wrapper.style, { background: theme.toolbar.panel, borderColor: theme.node.stroke, color: theme.node.text } as CSSProperties);
