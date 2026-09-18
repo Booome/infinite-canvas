@@ -3,6 +3,7 @@ import i18n from "@/i18n";
 import { ensureImagePreview, resolveImageUrl, uploadImage } from "@/services/image-storage";
 import { resolveMediaUrl } from "@/services/file-storage";
 import { imageMetadata, referenceUrl } from "@/lib/canvas/canvas-node-factory";
+import { applyGenerationDefaults } from "@/lib/canvas/canvas-generation-defaults";
 import type { NodeGenerationInput } from "@/components/canvas/canvas-node-generation";
 import type { CanvasNodeGenerationMode } from "@/components/canvas/canvas-node-prompt-panel";
 import type { CanvasImageAngleParams } from "@/components/canvas/canvas-node-angle-dialog";
@@ -102,24 +103,25 @@ export function getInputSummary(inputs: NodeGenerationInput[]) {
     };
 }
 
-export function buildGenerationConfig(config: AiConfig, node: CanvasNodeData | undefined, mode: CanvasNodeGenerationMode): AiConfig {
+export function buildGenerationConfig(config: AiConfig, node: CanvasNodeData | undefined, mode: CanvasNodeGenerationMode, defaults?: CanvasNodeMetadata): AiConfig {
+    const base = applyGenerationDefaults(config, mode, defaults);
     return {
-        ...config,
-        model: resolveModelForCapability(config, node?.metadata?.model, mode),
-        reasoningEffort: node?.metadata?.reasoningEffort || config.reasoningEffort || defaultConfig.reasoningEffort,
-        quality: node?.metadata?.quality || config.quality || defaultConfig.quality,
-        size: node?.metadata?.size || config.size || defaultConfig.size,
-        background: node?.metadata?.background ?? config.background ?? defaultConfig.background,
-        videoSeconds: node?.metadata?.seconds || config.videoSeconds || defaultConfig.videoSeconds,
-        vquality: node?.metadata?.vquality || config.vquality || defaultConfig.vquality,
-        videoGenerateAudio: node?.metadata?.generateAudio || config.videoGenerateAudio || defaultConfig.videoGenerateAudio,
-        videoWatermark: node?.metadata?.watermark || config.videoWatermark || defaultConfig.videoWatermark,
-        videoMode: node?.metadata?.videoMode || config.videoMode || defaultConfig.videoMode,
-        audioVoice: node?.metadata?.audioVoice || config.audioVoice || defaultConfig.audioVoice,
-        audioFormat: node?.metadata?.audioFormat || config.audioFormat || defaultConfig.audioFormat,
-        audioSpeed: node?.metadata?.audioSpeed || config.audioSpeed || defaultConfig.audioSpeed,
-        audioInstructions: node?.metadata?.audioInstructions || config.audioInstructions || defaultConfig.audioInstructions,
-        count: String(node?.metadata?.count || (mode === "image" ? config.canvasImageCount || config.count : config.count) || defaultConfig.count),
+        ...base,
+        model: resolveModelForCapability(base, node?.metadata?.model, mode),
+        reasoningEffort: node?.metadata?.reasoningEffort || base.reasoningEffort || defaultConfig.reasoningEffort,
+        quality: node?.metadata?.quality || base.quality || defaultConfig.quality,
+        size: node?.metadata?.size || base.size || defaultConfig.size,
+        background: node?.metadata?.background ?? base.background ?? defaultConfig.background,
+        videoSeconds: node?.metadata?.seconds || base.videoSeconds || defaultConfig.videoSeconds,
+        vquality: node?.metadata?.vquality || base.vquality || defaultConfig.vquality,
+        videoGenerateAudio: node?.metadata?.generateAudio || base.videoGenerateAudio || defaultConfig.videoGenerateAudio,
+        videoWatermark: node?.metadata?.watermark || base.videoWatermark || defaultConfig.videoWatermark,
+        videoMode: node?.metadata?.videoMode || base.videoMode || defaultConfig.videoMode,
+        audioVoice: node?.metadata?.audioVoice || base.audioVoice || defaultConfig.audioVoice,
+        audioFormat: node?.metadata?.audioFormat || base.audioFormat || defaultConfig.audioFormat,
+        audioSpeed: node?.metadata?.audioSpeed || base.audioSpeed || defaultConfig.audioSpeed,
+        audioInstructions: node?.metadata?.audioInstructions || base.audioInstructions || defaultConfig.audioInstructions,
+        count: String(node?.metadata?.count || (mode === "image" ? base.canvasImageCount || base.count : base.count) || defaultConfig.count),
     };
 }
 
