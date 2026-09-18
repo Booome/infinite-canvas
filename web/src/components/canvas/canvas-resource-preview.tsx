@@ -20,7 +20,7 @@ export function CanvasResourcePreview({ kind, url, title, text }: CanvasResource
     return (
         <div className="overflow-hidden rounded-lg border p-0.5 shadow-2xl" style={{ background: theme.toolbar.panel, borderColor: theme.toolbar.border }}>
             {kind === "image" && url ? (
-                <img src={url} alt={title || ""} className="block max-h-[26rem] max-w-[36rem] rounded-md object-contain" />
+                <img src={url} alt={title || ""} decoding="async" className="block max-h-[26rem] max-w-[36rem] rounded-md object-contain" />
             ) : kind === "video" && url ? (
                 <video src={url} className="block max-h-[26rem] max-w-[36rem] rounded-md object-contain" muted controls preload="metadata" />
             ) : kind === "audio" && url ? (
