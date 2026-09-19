@@ -723,6 +723,111 @@ function parseGeminiImagePayload(payload: GeminiPayload) {
     return images;
 }
 
+type HeyrouteStreamState = { buffer: string; payload?: ImageApiResponse; error?: string };
+
+function consumeHeyrouteStreamBlock(block: string, state: HeyrouteStreamState) {
+    const lines = block.split(/\r?\n/);
+    const event = lines.find((line) => line.startsWith("event:"))?.slice(6).trim() || "";
+    const data = lines
+        .filter((line) => line.startsWith("data:"))
+        .map((line) => line.slice(5).replace(/^ /, ""))
+        .join("\n")
+        .trim();
+    if (!data) return;
+    if (event === "error") {
+        state.error = readApiErrorMessage(data) || apiText("requestFailed");
+        return;
+    }
+    if (event === "completed") {
+        try {
+            state.payload = JSON.parse(data) as ImageApiResponse;
+        } catch {
+            state.error = apiText("noImageReturned");
+        }
+    }
+}
+
+function consumeHeyrouteStreamText(state: HeyrouteStreamState, text: string, flush = false) {
+    state.buffer += text;
+    for (;;) {
+        const match = state.buffer.match(/\r?\n\r?\n/);
+        if (!match) break;
+        const index = match.index ?? 0;
+        consumeHeyrouteStreamBlock(state.buffer.slice(0, index), state);
+        state.buffer = state.buffer.slice(index + match[0].length);
+    }
+    if (flush && state.buffer.trim()) {
+        consumeHeyrouteStreamBlock(state.buffer, state);
+        state.buffer = "";
+    }
+}
+
+function heyrouteSignal(options?: RequestOptions) {
+    const timeout = AbortSignal.timeout(IMAGE_REQUEST_TIMEOUT_MS);
+    return options?.signal ? AbortSignal.any([options.signal, timeout]) : timeout;
+}
+
+async function requestHeyrouteImages(url: string, init: RequestInit) {
+    const response = await fetch(url, init);
+    if (!response.ok) throw new Error(await readFetchError(response, apiText("requestFailed")));
+    if (!response.body) return parseImagePayload((await response.json()) as ImageApiResponse);
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    const state: HeyrouteStreamState = { buffer: "" };
+    while (!state.payload) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        consumeHeyrouteStreamText(state, decoder.decode(value, { stream: true }));
+        if (state.error) throw new Error(state.error);
+    }
+    await reader.cancel();
+    consumeHeyrouteStreamText(state, decoder.decode(), true);
+    if (state.error) throw new Error(state.error);
+    if (!state.payload) throw new Error(apiText("noImageReturned"));
+    return parseImagePayload(state.payload);
+}
+
+async function requestHeyrouteGenerationImages(config: AiConfig, prompt: string, n: number, options?: RequestOptions) {
+    const quality = normalizeQuality(config.quality);
+    const requestSize = resolveRequestSize(quality, config.size);
+    return requestHeyrouteImages(aiApiUrl(config, "/images/generations"), {
+        method: "POST",
+        headers: { ...aiHeaders(config, "application/json"), Accept: "text/event-stream" },
+        body: JSON.stringify({
+            model: config.model,
+            prompt: withSystemPrompt(config, prompt),
+            n,
+            stream: true,
+            response_format: "b64_json",
+            ...(quality ? { quality } : {}),
+            ...(requestSize ? { size: requestSize } : {}),
+        }),
+        signal: heyrouteSignal(options),
+    });
+}
+
+async function requestHeyrouteEditImages(config: AiConfig, prompt: string, references: ReferenceImage[], n: number, options?: RequestOptions) {
+    const quality = normalizeQuality(config.quality);
+    const requestSize = resolveRequestSize(quality, config.size);
+    const formData = new FormData();
+    formData.set("model", config.model);
+    formData.set("prompt", withSystemPrompt(config, prompt));
+    formData.set("n", String(n));
+    formData.set("stream", "true");
+    formData.set("response_format", "b64_json");
+    if (quality) formData.set("quality", quality);
+    if (requestSize) formData.set("size", requestSize);
+    const files = await Promise.all(references.map(async (image) => dataUrlToFile({ ...image, dataUrl: await imageToDataUrl(image) })));
+    files.forEach((file) => formData.append("image", file));
+    return requestHeyrouteImages(aiApiUrl(config, "/images/edits"), {
+        method: "POST",
+        headers: { ...aiHeaders(config), Accept: "text/event-stream" },
+        body: formData,
+        signal: heyrouteSignal(options),
+    });
+}
+
 export async function requestGeneration(config: AiConfig, prompt: string, options?: RequestOptions) {
     const requestConfig = resolveModelRequestConfig(config, config.model || config.imageModel);
     const n = Math.max(1, Math.min(15, Math.floor(Math.abs(Number(config.count)) || 1)));
@@ -749,6 +854,13 @@ export async function requestGeneration(config: AiConfig, prompt: string, option
     if (requestConfig.apiFormat === "gemini") {
         try {
             return await requestGeminiImages(requestConfig, prompt, [], n, options);
+        } catch (error) {
+            throw new Error(readAxiosError(error, apiText("requestFailed")));
+        }
+    }
+    if (requestConfig.apiFormat === "heyrouter") {
+        try {
+            return await requestHeyrouteGenerationImages(requestConfig, prompt, n, options);
         } catch (error) {
             throw new Error(readAxiosError(error, apiText("requestFailed")));
         }
@@ -811,6 +923,13 @@ export async function requestEdit(config: AiConfig, prompt: string, references: 
     if (requestConfig.apiFormat === "gemini") {
         try {
             return await requestGeminiImages(requestConfig, requestPrompt, references, n, options);
+        } catch (error) {
+            throw new Error(readAxiosError(error, apiText("requestFailed")));
+        }
+    }
+    if (requestConfig.apiFormat === "heyrouter") {
+        try {
+            return await requestHeyrouteEditImages(requestConfig, requestPrompt, references, n, options);
         } catch (error) {
             throw new Error(readAxiosError(error, apiText("requestFailed")));
         }

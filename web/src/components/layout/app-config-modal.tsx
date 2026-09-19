@@ -14,7 +14,7 @@ import { exportAppConfig, importAppConfig } from "@/services/config-file";
 import { syncAppDataToWebdav, type AppSyncDomainKey, type AppSyncProgressEvent } from "@/services/app-sync";
 import { testWebdavConnection, WEBDAV_MANIFEST_FILE_NAME } from "@/services/webdav-sync";
 import { audioFormatOptions, audioVoiceOptions, normalizeAudioSpeedValue } from "@/lib/audio-generation";
-import { createModelChannel, modelOptionsFromChannels, normalizeModelOptionValue, selectableModelsByCapability, useConfigStore, type AiConfig, type ApiCallFormat, type ConfigTabKey, type ModelCapability, type ModelChannel } from "@/stores/use-config-store";
+import { API_CALL_FORMATS, createModelChannel, modelOptionsFromChannels, normalizeModelOptionValue, selectableModelsByCapability, useConfigStore, type AiConfig, type ConfigTabKey, type ModelCapability, type ModelChannel } from "@/stores/use-config-store";
 
 type ModelGroup = {
     capability: ModelCapability;
@@ -52,7 +52,7 @@ export function AppConfigPanel({ showDoneButton = false, initialTab = "channels"
     const { i18n, t } = useTranslation();
     const configInputRef = useRef<HTMLInputElement>(null);
     const [activeTab, setActiveTab] = useState<ConfigTabKey>(initialTab);
-    const [editingChannelId, setEditingChannelId] = useState("");
+    const [editingChannel, setEditingChannel] = useState<ModelChannel | null>(null);
     const [testingWebdav, setTestingWebdav] = useState(false);
     const [syncingWebdav, setSyncingWebdav] = useState(false);
     const [webdavSyncStatus, setWebdavSyncStatus] = useState("");
@@ -67,7 +67,6 @@ export function AppConfigPanel({ showDoneButton = false, initialTab = "channels"
     const setConfigDialogOpen = useConfigStore((state) => state.setConfigDialogOpen);
     const clearPromptContinue = useConfigStore((state) => state.clearPromptContinue);
     const webdavReady = Boolean(webdav.url.trim());
-    const editingChannel = config.channels.find((channel) => channel.id === editingChannelId) || null;
     const locale = i18n.resolvedLanguage as AppLocale;
     useEffect(() => setActiveTab(initialTab), [initialTab]);
 
@@ -105,9 +104,11 @@ export function AppConfigPanel({ showDoneButton = false, initialTab = "channels"
     const updateChannels = (channels: ModelChannel[]) => saveConfig(withChannels(config, channels));
 
     const addChannel = () => {
-        const channel = createModelChannel({ name: t("config.channels.numberedName", { count: config.channels.length + 1 }) });
-        updateChannels([...config.channels, channel]);
-        setEditingChannelId(channel.id);
+        setEditingChannel(createModelChannel({ name: t("config.channels.numberedName", { count: config.channels.length + 1 }) }));
+    };
+
+    const editChannel = (id: string) => {
+        setEditingChannel(config.channels.find((channel) => channel.id === id) || null);
     };
 
     const deleteChannel = (id: string) => {
@@ -119,7 +120,8 @@ export function AppConfigPanel({ showDoneButton = false, initialTab = "channels"
     };
 
     const saveChannel = (channel: ModelChannel) => {
-        updateChannels(config.channels.map((item) => (item.id === channel.id ? channel : item)));
+        updateChannels(config.channels.some((item) => item.id === channel.id) ? config.channels.map((item) => (item.id === channel.id ? channel : item)) : [...config.channels, channel]);
+        setEditingChannel(null);
     };
 
     const testWebdav = async () => {
@@ -207,11 +209,11 @@ export function AppConfigPanel({ showDoneButton = false, initialTab = "channels"
                                             <div className="min-w-0">
                                                 <div className="truncate text-sm font-semibold">{channel.name || t("config.channels.unnamed")}</div>
                                                 <div className="mt-1 truncate text-xs text-stone-500">
-                                                    {apiFormatLabel(channel.apiFormat)} · {t("config.channels.modelCount", { count: channel.models.length })} · {channel.baseUrl || t("config.channels.missingUrl")}
+                                                    {API_CALL_FORMATS[channel.apiFormat].label} · {t("config.channels.modelCount", { count: channel.models.length })} · {channel.baseUrl || t("config.channels.missingUrl")}
                                                 </div>
                                             </div>
                                             <div className="flex shrink-0 gap-2">
-                                                <Button size="small" icon={<Pencil className="size-3.5" />} onClick={() => setEditingChannelId(channel.id)}>
+                                                <Button size="small" icon={<Pencil className="size-3.5" />} onClick={() => editChannel(channel.id)}>
                                                     {t("common.edit")}
                                                 </Button>
                                                 <Button size="small" danger icon={<Trash2 className="size-3.5" />} onClick={() => deleteChannel(channel.id)} />
@@ -379,7 +381,7 @@ export function AppConfigPanel({ showDoneButton = false, initialTab = "channels"
             <div className="pointer-events-none sticky bottom-0 -ml-6 -mr-3 flex justify-center bg-gradient-to-t from-white pb-0.5 pt-8 transition-opacity duration-200 dark:from-[#1f1f1f]" style={{ opacity: showScrollHint ? 1 : 0 }}>
                 <ChevronDown className="size-4 text-stone-400" />
             </div>
-            <ChannelEditorDrawer open={Boolean(editingChannel)} channel={editingChannel} onSave={saveChannel} onClose={() => setEditingChannelId("")} />
+            <ChannelEditorDrawer open={Boolean(editingChannel)} channel={editingChannel} onSave={saveChannel} onClose={() => setEditingChannel(null)} />
         </>
     );
 }
@@ -436,11 +438,6 @@ function pickDefaultModel(config: AiConfig, capability: ModelCapability, current
 
 function normalizeImageCount(value: string) {
     return String(Math.max(1, Math.min(15, Math.floor(Math.abs(Number(value)) || 3))));
-}
-
-function apiFormatLabel(apiFormat: ApiCallFormat) {
-    if (apiFormat === "gemini") return "Gemini";
-    return "OpenAI";
 }
 
 function formatWebdavTime(value: string, locale: AppLocale) {

@@ -5,7 +5,14 @@ import { nanoid } from "nanoid";
 
 import i18n from "@/i18n";
 
-export type ApiCallFormat = "openai" | "gemini";
+export const API_CALL_FORMATS = {
+    openai: { label: "OpenAI", defaultBaseUrl: "https://api.openai.com" },
+    gemini: { label: "Gemini", defaultBaseUrl: "https://generativelanguage.googleapis.com" },
+    heyrouter: { label: "HeyRoute", defaultBaseUrl: "https://heyroute.ai" },
+} as const;
+
+export type ApiCallFormat = keyof typeof API_CALL_FORMATS;
+export const API_CALL_FORMAT_IDS = Object.keys(API_CALL_FORMATS) as ApiCallFormat[];
 export type ModelCapability = "image" | "video" | "text" | "audio";
 export type ReasoningEffort = "auto" | "low" | "medium" | "high" | "xhigh";
 
@@ -15,9 +22,29 @@ export type ChannelModel = {
     script?: string;
 };
 
+export type ChannelProviderPreset = {
+    id: string;
+    apiFormat: ApiCallFormat | null;
+    baseUrl: string;
+    label?: string;
+    labelKey?: string;
+};
+
+export const CHANNEL_PROVIDER_PRESETS = [
+    { id: "custom", apiFormat: null, baseUrl: "", labelKey: "config.channelEditor.providers.custom" },
+    { id: "openai", apiFormat: "openai", baseUrl: API_CALL_FORMATS.openai.defaultBaseUrl, label: "OpenAI" },
+    { id: "gemini", apiFormat: "gemini", baseUrl: API_CALL_FORMATS.gemini.defaultBaseUrl, label: "Gemini" },
+    { id: "heyrouter", apiFormat: "heyrouter", baseUrl: API_CALL_FORMATS.heyrouter.defaultBaseUrl, label: "HeyRoute" },
+    { id: "infistar", apiFormat: "openai", baseUrl: "https://infistar.cc", label: "Infistar" },
+    { id: "packycode", apiFormat: "openai", baseUrl: "https://www.packyapi.ai", label: "PackyCode" },
+] as const satisfies readonly ChannelProviderPreset[];
+
+export type ChannelProvider = (typeof CHANNEL_PROVIDER_PRESETS)[number]["id"];
+
 export type ModelChannel = {
     id: string;
     name: string;
+    provider: ChannelProvider;
     baseUrl: string;
     apiKey: string;
     apiFormat: ApiCallFormat;
@@ -75,21 +102,20 @@ export type ChannelCredentialsImportResult = {
 
 export const CONFIG_STORE_KEY = "infinite-canvas:ai_config_store";
 const CHANNEL_MODEL_SEPARATOR = "::";
-const OPENAI_BASE_URL = "https://api.openai.com";
-const GEMINI_BASE_URL = "https://generativelanguage.googleapis.com";
 export const LOCAL_PROXY_PACKAGE = "@basketikun/canvas-proxy";
 export const DEFAULT_LOCAL_PROXY_URL = "http://127.0.0.1:23210";
 
 export const defaultConfig: AiConfig = {
     channelMode: "local",
-    baseUrl: OPENAI_BASE_URL,
+    baseUrl: API_CALL_FORMATS.openai.defaultBaseUrl,
     apiKey: "",
     apiFormat: "openai",
     channels: [
         {
             id: "default",
             name: i18n.t("config.channels.defaultName"),
-            baseUrl: OPENAI_BASE_URL,
+            provider: "custom",
+            baseUrl: API_CALL_FORMATS.openai.defaultBaseUrl,
             apiKey: "",
             apiFormat: "openai",
             models: [
@@ -314,6 +340,7 @@ export function createModelChannel(channel?: Partial<ModelChannel>): ModelChanne
     return {
         id: channel?.id?.trim() || nanoid(),
         name: channel?.name?.trim() || i18n.t("config.channels.newName"),
+        provider: normalizeChannelProvider(channel?.provider),
         baseUrl: channel?.baseUrl?.trim() || defaultBaseUrlForApiFormat(apiFormat),
         apiKey: channel?.apiKey || "",
         apiFormat,
@@ -470,12 +497,15 @@ function normalizeChannels(config: AiConfig) {
 }
 
 export function defaultBaseUrlForApiFormat(apiFormat: ApiCallFormat) {
-    if (apiFormat === "gemini") return GEMINI_BASE_URL;
-    return OPENAI_BASE_URL;
+    return API_CALL_FORMATS[apiFormat].defaultBaseUrl;
 }
 
 function normalizeApiFormat(apiFormat: unknown): ApiCallFormat {
-    return apiFormat === "gemini" ? apiFormat : "openai";
+    return API_CALL_FORMAT_IDS.includes(apiFormat as ApiCallFormat) ? (apiFormat as ApiCallFormat) : "openai";
+}
+
+function normalizeChannelProvider(provider: unknown): ChannelProvider {
+    return (CHANNEL_PROVIDER_PRESETS.some((preset) => preset.id === provider) ? provider : "custom") as ChannelProvider;
 }
 
 function uniqueModelOptions(models: string[]) {

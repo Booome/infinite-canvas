@@ -3,7 +3,7 @@ import { ListPlus, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { defaultBaseUrlForApiFormat, guessCapability, normalizeChannelModels, type ApiCallFormat, type ChannelModel, type ModelCapability, type ModelChannel } from "@/stores/use-config-store";
+import { API_CALL_FORMATS, API_CALL_FORMAT_IDS, CHANNEL_PROVIDER_PRESETS, defaultBaseUrlForApiFormat, guessCapability, normalizeChannelModels, type ApiCallFormat, type ChannelModel, type ChannelProvider, type ChannelProviderPreset, type ModelCapability, type ModelChannel } from "@/stores/use-config-store";
 import { ModelScriptEditor } from "./model-script-editor";
 import { ModelSelectModal } from "./model-select-modal";
 import { ThemedTooltip } from "@/components/ui/themed-tooltip";
@@ -15,10 +15,9 @@ export function ChannelEditorDrawer({ open, channel, onSave, onClose }: { open: 
     const [draft, setDraft] = useState<ModelChannel | null>(channel);
     const [selectOpen, setSelectOpen] = useState(false);
     const [scriptTarget, setScriptTarget] = useState<ScriptTarget | null>(null);
-    const apiFormatOptions: Array<{ label: string; value: ApiCallFormat }> = [
-        { label: "OpenAI", value: "openai" },
-        { label: "Gemini", value: "gemini" },
-    ];
+    const apiFormatOptions: Array<{ label: string; value: ApiCallFormat }> = API_CALL_FORMAT_IDS.map((value) => ({ label: API_CALL_FORMATS[value].label, value }));
+    const providerLabel = (preset: ChannelProviderPreset) => (preset.labelKey ? t(preset.labelKey) : preset.label || preset.id);
+    const providerOptions: Array<{ label: string; value: ChannelProvider }> = CHANNEL_PROVIDER_PRESETS.map((preset) => ({ label: providerLabel(preset), value: preset.id }));
     const capabilityOptions: Array<{ label: string; value: ModelCapability }> = ["image", "video", "text", "audio"].map((value) => ({ label: t(`config.channelEditor.capabilities.${value}`), value: value as ModelCapability }));
 
     useEffect(() => {
@@ -29,6 +28,16 @@ export function ChannelEditorDrawer({ open, channel, onSave, onClose }: { open: 
 
     const patch = (value: Partial<ModelChannel>) => setDraft((current) => (current ? { ...current, ...value } : current));
     const setModels = (models: ChannelModel[]) => patch({ models });
+    const lockedByProvider = draft.provider !== "custom";
+
+    const changeProvider = (provider: ChannelProvider) => {
+        const preset = CHANNEL_PROVIDER_PRESETS.find((item) => item.id === provider);
+        if (!preset?.apiFormat) {
+            patch({ provider });
+            return;
+        }
+        patch({ provider, name: providerLabel(preset), apiFormat: preset.apiFormat, baseUrl: preset.baseUrl });
+    };
 
     const changeApiFormat = (apiFormat: ApiCallFormat) => {
         const baseUrl = !draft.baseUrl.trim() || draft.baseUrl.trim() === defaultBaseUrlForApiFormat(draft.apiFormat) ? defaultBaseUrlForApiFormat(apiFormat) : draft.baseUrl;
@@ -66,17 +75,22 @@ export function ChannelEditorDrawer({ open, channel, onSave, onClose }: { open: 
             }
         >
             <div className="grid gap-4 md:grid-cols-2">
+                <label className="block md:col-span-2">
+                    <span className="mb-1 block text-sm font-medium">{t("config.channelEditor.provider")}</span>
+                    <Select className="w-full" value={draft.provider} options={providerOptions} onChange={changeProvider} />
+                    {lockedByProvider ? <span className="mt-1 block text-xs text-stone-500">{t("config.channelEditor.providerLockedHint")}</span> : null}
+                </label>
                 <label className="block">
                     <span className="mb-1 block text-sm font-medium">{t("config.channelEditor.name")}</span>
-                    <Input value={draft.name} onChange={(event) => patch({ name: event.target.value })} />
+                    <Input value={draft.name} disabled={lockedByProvider} onChange={(event) => patch({ name: event.target.value })} />
                 </label>
                 <label className="block">
                     <span className="mb-1 block text-sm font-medium">{t("config.channelEditor.protocol")}</span>
-                    <Select className="w-full" value={draft.apiFormat} options={apiFormatOptions} onChange={changeApiFormat} />
+                    <Select className="w-full" value={draft.apiFormat} disabled={lockedByProvider} options={apiFormatOptions} onChange={changeApiFormat} />
                 </label>
                 <label className="block md:col-span-2">
                     <span className="mb-1 block text-sm font-medium">{t("config.channelEditor.baseUrl")}</span>
-                    <Input value={draft.baseUrl} onChange={(event) => patch({ baseUrl: event.target.value })} placeholder="https://api.example.com" />
+                    <Input value={draft.baseUrl} disabled={lockedByProvider} onChange={(event) => patch({ baseUrl: event.target.value })} placeholder="https://api.example.com" />
                 </label>
                 <label className="block md:col-span-2">
                     <span className="mb-1 block text-sm font-medium">API Key</span>
