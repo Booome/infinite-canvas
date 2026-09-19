@@ -70,8 +70,22 @@ export function createGenerationSnapshot(mode: CanvasGenerationMode, metadata: C
     return { mode, params: pickGenerationParams(metadata), prompt, referenceNodeIds };
 }
 
+// Only keys a generation is guaranteed to write and an upload replacement clears, so leftovers from
+// other writes (a size picked in the panel, an emptied `images` array) never mark a node as generated.
+const GENERATION_TRACE_KEYS = ["generationType", "generationSnapshot", "model", "quality", "count", "textCount", "reasoningEffort", "seconds", "vquality", "videoMode", "generateAudio", "watermark", "videoTaskId", "texts", "primaryTextId", "audioVoice", "audioFormat", "audioSpeed", "audioInstructions"] as const;
+
+export function generationTraceKeys(metadata: CanvasNodeMetadata) {
+    return GENERATION_TRACE_KEYS.filter((key) => metadata[key] !== undefined);
+}
+
+/** Metadata patch for replaced content: drops every generation trace plus the fields a generation leaves behind. */
+export const USER_CONTENT_RESET: CanvasNodeMetadata = Object.fromEntries([...GENERATION_TRACE_KEYS, "size", "background", "images", "primaryImageId", "references"].map((key) => [key, undefined])) as CanvasNodeMetadata;
+
 export function isUploadedMaterial(node: CanvasNodeData) {
-    return node.metadata?.userContent === true;
+    const metadata = node.metadata;
+    if (!metadata?.content) return false;
+    if (metadata.userContent !== undefined) return metadata.userContent;
+    return generationTraceKeys(metadata).length === 0;
 }
 
 export function generationSnapshotDiffers(snapshot: CanvasGenerationSnapshot | undefined, mode: CanvasGenerationMode, metadata: CanvasNodeMetadata, prompt: string, referenceNodeIds: string[]) {

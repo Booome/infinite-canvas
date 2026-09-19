@@ -10,7 +10,7 @@ import { formatBytes, getDataUrlByteSize } from "@/lib/image-utils";
 import { useCopyText } from "@/hooks/use-copy-text";
 import { useThemeStore } from "@/stores/use-theme-store";
 import { useConfigStore } from "@/stores/use-config-store";
-import { isUploadedMaterial } from "@/lib/canvas/canvas-generation-defaults";
+import { generationTraceKeys, isUploadedMaterial } from "@/lib/canvas/canvas-generation-defaults";
 import { CanvasNodeType, type CanvasNodeData, type ViewportTransform } from "@/types/canvas";
 import type { CanvasNodeToolbarItem } from "@/types/canvas-plugin";
 import { ImageToolSettingsModal, type ImageToolbarSettingsTool } from "./canvas-image-toolbar-settings-modal";
@@ -250,6 +250,11 @@ export function CanvasNodeInfoModal({ node, open, onClose }: { node: CanvasNodeD
         if (open) setView("info");
     }, [node?.id, open]);
 
+    const traceKeys = node ? generationTraceKeys(node.metadata || {}) : [];
+    const uploadedMaterial = node ? isUploadedMaterial(node) : false;
+    const regenerateInPlace = useConfigStore((state) => state.config.nodeRegenerateBehavior) === "overwrite";
+    const hidesGeneration = regenerateInPlace && uploadedMaterial;
+
     const title = (
         <div className="flex items-center justify-between gap-4 pr-12">
             <span>{t("canvas.nodeToolbar.nodeInfo")}</span>
@@ -273,6 +278,8 @@ export function CanvasNodeInfoModal({ node, open, onClose }: { node: CanvasNodeD
                         <div className="thin-scrollbar h-full space-y-3 overflow-auto pr-1">
                             <InfoRow label="ID" value={node.id} />
                             <InfoRow label={t("canvas.nodeToolbar.name")} value={node.title || t("canvas.node.untitled")} />
+                            <InfoRow label={t("canvas.nodeToolbar.source")} value={uploadedMaterial ? t("canvas.nodeToolbar.sourceUser") : t("canvas.nodeToolbar.sourceGenerated", { keys: traceKeys.join(", ") || "-" })} />
+                            <InfoRow label={t("canvas.nodeToolbar.generationEntries")} value={hidesGeneration ? t("canvas.nodeToolbar.generationHidden") : regenerateInPlace ? t("canvas.nodeToolbar.generationShownInPlace") : t("canvas.nodeToolbar.generationShownNewNode")} />
                             <InfoRow label={t("canvas.nodeToolbar.type")} value={node.type === CanvasNodeType.Group ? t("canvas.node.group") : node.type === CanvasNodeType.Config ? t("canvas.configNode.title") : [CanvasNodeType.Image, CanvasNodeType.Video, CanvasNodeType.Audio, CanvasNodeType.Text].includes(node.type as CanvasNodeType) ? t(`assets.kinds.${node.type}`) : getNodeDefinition(node.type)?.title || node.type} />
                             <InfoRow label={t("canvas.nodeToolbar.size")} value={`${Math.round(node.width)} x ${Math.round(node.height)}`} />
                             <InfoRow label={t("canvas.nodeToolbar.position")} value={`${Math.round(node.position.x)}, ${Math.round(node.position.y)}`} />

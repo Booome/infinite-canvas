@@ -92,7 +92,7 @@ export type CanvasNodeMetadata = {
     videoTaskProvider?: "openai" | "gemini";
     groupId?: string;
     interactive?: boolean; // Plugin node interaction/move state; see CanvasNodeDefinition.interactionToggle.
-    userContent?: boolean;
+    userContent?: boolean; // Who wrote the content: true for uploads/paste/insert/typed text, false for app-produced artifacts; see isUploadedMaterial.
     generationSnapshot?: CanvasGenerationSnapshot;
 };
 

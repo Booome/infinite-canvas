@@ -51,7 +51,7 @@ import { usePluginHost } from "@/pages/canvas/hooks/use-plugin-host";
 import { buildNodeMentionReferences, getGroupResourceNodes, isCanvasReferenceNode, type CanvasResourceReference } from "@/lib/canvas/canvas-resource-references";
 import { exportCanvasProjects } from "@/lib/canvas/canvas-export";
 import { applyNodeConfigPatch, audioMetadata, buildAudioGenerationMetadata, buildImageGenerationMetadata, createCanvasNode, imageMetadata, videoMetadata } from "@/lib/canvas/canvas-node-factory";
-import { GENERATION_PARAM_KEYS, createGenerationSnapshot, generationModeForNodeType, isUploadedMaterial, preferenceMetadataForMode, updateGenerationDefaults, type CanvasGenerationDefaults } from "@/lib/canvas/canvas-generation-defaults";
+import { GENERATION_PARAM_KEYS, USER_CONTENT_RESET, createGenerationSnapshot, generationModeForNodeType, isUploadedMaterial, preferenceMetadataForMode, updateGenerationDefaults, type CanvasGenerationDefaults } from "@/lib/canvas/canvas-generation-defaults";
 import { applyGroupSelection, applyUngroupSelection, canGroupSelectedNodes, canUngroupSelectedNodes, collectGroupMemberNodes, findContainingGroupId, findGroupDropTarget, focusViewportForNode, getConnectionTargetAnchor, getGroupWrapRect, normalizeConnection, snapNodesIntoGroup } from "@/lib/canvas/canvas-node-geometry";
 import {
     audioExtension,
@@ -1976,7 +1976,7 @@ function InfiniteCanvasPage() {
                     title: t(`canvas.videoFrames.${position}Title`, { name: node.title || t("assets.kinds.video") }),
                     position: { x, y },
                     ...size,
-                    metadata: imageMetadata(image),
+                    metadata: { ...imageMetadata(image), userContent: false },
                 };
                 setNodes((prev) => [...prev, child]);
                 setConnections((prev) => [...prev, { id: nanoid(), fromNodeId: node.id, toNodeId: id }]);
@@ -2090,6 +2090,7 @@ function InfiniteCanvasPage() {
             metadata: {
                 ...imageMetadata(image),
                 prompt: node.metadata?.prompt,
+                userContent: false,
             },
         };
         setNodes((prev) => [...prev, child]);
@@ -2123,6 +2124,7 @@ function InfiniteCanvasPage() {
                         metadata: {
                             ...imageMetadata(image),
                             prompt: node.metadata?.prompt,
+                            userContent: false,
                         },
                     } satisfies CanvasNodeData;
                 }),
@@ -2165,7 +2167,7 @@ function InfiniteCanvasPage() {
                     position: { x: node.position.x, y: node.position.y + node.height + 96 },
                     width: node.width,
                     height: node.height,
-                    metadata: imageMetadata(maskImage),
+                    metadata: { ...imageMetadata(maskImage), userContent: false },
                 },
                 {
                     id: childId,
@@ -2223,6 +2225,7 @@ function InfiniteCanvasPage() {
             metadata: {
                 ...imageMetadata(image),
                 prompt: node.metadata?.prompt,
+                userContent: false,
             },
         };
         setNodes((prev) => [...prev, child]);
@@ -2333,7 +2336,7 @@ function InfiniteCanvasPage() {
                                       position: { x: node.position.x + node.width / 2 - spec.width / 2, y: node.position.y + node.height / 2 - spec.height / 2 },
                                       width: spec.width,
                                       height: spec.height,
-                                      metadata: { ...node.metadata, ...audioMetadata(audio), errorDetails: undefined, userContent: true },
+                                      metadata: { ...node.metadata, ...USER_CONTENT_RESET, ...audioMetadata(audio), errorDetails: undefined, userContent: true },
                                   }
                                 : node,
                         ),
@@ -2353,7 +2356,7 @@ function InfiniteCanvasPage() {
                                       position: { x: node.position.x + node.width / 2 - nextSize.width / 2, y: node.position.y + node.height / 2 - nextSize.height / 2 },
                                       width: nextSize.width,
                                       height: nextSize.height,
-                                      metadata: { ...node.metadata, ...videoMetadata(video), errorDetails: undefined, userContent: true },
+                                      metadata: { ...node.metadata, ...USER_CONTENT_RESET, ...videoMetadata(video), errorDetails: undefined, userContent: true },
                                   }
                                 : node,
                         ),
@@ -2374,17 +2377,10 @@ function InfiniteCanvasPage() {
                                       height: s.height,
                                       metadata: {
                                           ...node.metadata,
+                                          ...USER_CONTENT_RESET,
                                           ...imageMetadata(image),
                                           errorDetails: undefined,
                                           freeResize: false,
-                                          images: undefined,
-                                          generationType: undefined,
-                                          model: undefined,
-                                          size: undefined,
-                                          quality: undefined,
-                                          count: undefined,
-                                          references: undefined,
-                                          primaryImageId: undefined,
                                           userContent: true,
                                       },
                                   }
