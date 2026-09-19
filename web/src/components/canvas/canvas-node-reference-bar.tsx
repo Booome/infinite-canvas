@@ -21,7 +21,7 @@ export function CanvasNodeReferenceBar({ nodeId, nodes, connectedNodes, disabled
             <div className="thin-scrollbar flex min-h-12 gap-2 overflow-x-auto pb-1">
                 {references.map(({ node, sourceNodeId }) => <ReferenceItem key={`${sourceNodeId}:${node.id}`} node={node} disabled={disabled} onRemove={() => onDisconnect?.(sourceNodeId, nodeId)} onFocus={onFocusNode ? () => onFocusNode(node.id) : undefined} />)}
                 <ThemedTooltip title={t("canvas.references.select")}>
-                    <button type="button" className="grid size-12 shrink-0 place-items-center rounded-xl border bg-transparent transition enabled:hover:opacity-70 disabled:cursor-not-allowed disabled:opacity-40" style={{ borderColor: theme.toolbar.border, color: theme.node.muted }} disabled={disabled} onClick={() => onStartSelection?.(nodeId)}>
+                    <button type="button" className="grid size-12 shrink-0 place-items-center rounded-xl border bg-transparent transition enabled:hover:opacity-70 disabled:cursor-not-allowed disabled:opacity-30" style={{ borderColor: theme.toolbar.border, color: disabled ? theme.node.placeholder : theme.node.muted }} disabled={disabled} onClick={() => onStartSelection?.(nodeId)}>
                         <Plus className="size-4" />
                     </button>
                 </ThemedTooltip>

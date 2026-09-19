@@ -20,7 +20,7 @@ export function CanvasPromptLibrary({ onSelect, disabled = false }: { onSelect: 
                     type="text"
                     disabled={disabled}
                     className="!h-8 !w-8 !min-w-8 shrink-0 !rounded-full !bg-transparent !p-0"
-                    style={{ color: theme.node.text }}
+                    style={{ color: disabled ? theme.node.faint : theme.node.text, opacity: disabled ? 0.35 : 1 }}
                     icon={<BookOpen className="size-3.5" />}
                     onClick={() => setOpen(true)}
                     aria-label={t("navigation.prompts")}

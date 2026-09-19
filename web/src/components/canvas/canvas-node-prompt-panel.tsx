@@ -102,14 +102,14 @@ export function CanvasNodePromptPanel({ node, nodes, isRunning, onPromptChange, 
                 onFocusReference={onFocusNode}
                 readOnly={isRunning}
                 className="thin-scrollbar h-40 w-full cursor-text resize-none rounded-xl px-3 py-2 text-sm leading-5 outline-none"
-                style={{ background: "transparent", color: theme.node.text }}
+                style={{ background: "transparent", color: isRunning ? theme.node.muted : theme.node.text, ...(isRunning ? { boxShadow: `inset 0 0 0 1px ${theme.toolbar.border}` } : {}) }}
                 placeholder={t(`canvas.promptPanel.${mode === "image" && hasImageContent ? "editImage" : mode === "text" && hasTextContent ? "editText" : mode}`)}
             />
 
             <div className="mt-2 flex min-w-0 items-center justify-between gap-2">
                 <div className="flex min-w-0 items-center gap-2">
                     <ThemedTooltip title={t("canvas.promptPanel.expandEditor")}>
-                        <Button type="text" disabled={isRunning} className="!h-8 !w-8 !min-w-8 shrink-0 !rounded-full !bg-transparent !p-0" style={{ color: theme.node.text }} icon={<Maximize2 className="size-3.5" />} onClick={openExpandedEditor} aria-label={t("canvas.promptPanel.expandEditor")} />
+                        <Button type="text" disabled={isRunning} className="!h-8 !w-8 !min-w-8 shrink-0 !rounded-full !bg-transparent !p-0" style={{ color: theme.node.text, opacity: isRunning ? 0.35 : 1 }} icon={<Maximize2 className="size-3.5" />} onClick={openExpandedEditor} aria-label={t("canvas.promptPanel.expandEditor")} />
                     </ThemedTooltip>
                     <CanvasPromptLibrary onSelect={updatePrompt} disabled={isRunning} />
                     {mode === "image" ? (
@@ -126,7 +126,7 @@ export function CanvasNodePromptPanel({ node, nodes, isRunning, onPromptChange, 
                             />
                             {generationSnapshot && onResetGeneration ? (
                                 <ThemedTooltip title={t("canvas.promptPanel.resetGeneration")}>
-                                    <Button type="text" disabled={isRunning || !canResetGeneration} className="!h-8 !w-8 !min-w-8 shrink-0 !rounded-full !bg-transparent !p-0" style={{ color: theme.node.text }} icon={<RotateCcw className="size-3.5" />} onClick={resetGeneration} aria-label={t("canvas.promptPanel.resetGeneration")} />
+                                        <Button type="text" disabled={isRunning || !canResetGeneration} className="!h-8 !w-8 !min-w-8 shrink-0 !rounded-full !bg-transparent !p-0" style={{ color: isRunning || !canResetGeneration ? theme.node.faint : theme.node.text, opacity: isRunning ? 0.35 : 1 }} icon={<RotateCcw className="size-3.5" />} onClick={resetGeneration} aria-label={t("canvas.promptPanel.resetGeneration")} />
                                 </ThemedTooltip>
                             ) : null}
                         </>
