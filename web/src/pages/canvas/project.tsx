@@ -299,6 +299,8 @@ function InfiniteCanvasPage() {
     const selectedNodeIdsRef = useRef(selectedNodeIds);
     const viewportRef = useRef(viewport);
     const focusAnimRef = useRef<number | null>(null);
+    const focusAnimFromRef = useRef<ViewportTransform | null>(null);
+    const focusAnimNodeRef = useRef<string | null>(null);
     const generateNodeRef = useRef<((nodeId: string, mode: CanvasNodeGenerationMode, prompt: string) => Promise<void>) | null>(null);
     const connectingParamsRef = useRef(connectingParams);
     const connectionTargetNodeIdRef = useRef(connectionTargetNodeId);
@@ -1177,6 +1179,8 @@ function InfiniteCanvasPage() {
                 const viewportSize = containerRect ? { width: containerRect.width, height: containerRect.height } : size;
                 const target = focusViewportForNode(node, viewportSize, measureFocusFrame(containerRef.current, nodeId));
                 const start = { ...viewportRef.current };
+                focusAnimFromRef.current = start;
+                focusAnimNodeRef.current = nodeId;
                 let startTime: number | null = null;
                 const step = (now: number) => {
                     if (startTime === null) startTime = now;
@@ -1184,6 +1188,10 @@ function InfiniteCanvasPage() {
                     const t = easeOutCubic(progress);
                     setViewport({ x: start.x + (target.x - start.x) * t, y: start.y + (target.y - start.y) * t, k: start.k + (target.k - start.k) * t });
                     focusAnimRef.current = progress < 1 ? requestAnimationFrame(step) : null;
+                    if (progress >= 1) {
+                        focusAnimFromRef.current = null;
+                        focusAnimNodeRef.current = null;
+                    }
                 };
                 focusAnimRef.current = requestAnimationFrame(step);
             });
@@ -1195,6 +1203,27 @@ function InfiniteCanvasPage() {
     useEffect(() => {
         focusNodeRef.current = focusNode;
     }, [focusNode]);
+
+    // A double-click that opens an image preview is preceded by a plain click that already started
+    // a focus animation. Unwind exactly that one: the view returns to where the user left it (hidden
+    // behind the preview overlay) and the history drops the entry it never visibly reached.
+    const cancelFocusAnimation = useCallback(
+        (nodeId: string) => {
+            if (!focusAnimRef.current || focusAnimNodeRef.current !== nodeId || !focusAnimFromRef.current) return;
+            cancelAnimationFrame(focusAnimRef.current);
+            focusAnimRef.current = null;
+            setViewport(focusAnimFromRef.current);
+            focusAnimFromRef.current = null;
+            focusAnimNodeRef.current = null;
+            const history = focusHistoryRef.current;
+            if (history.ids[history.index] === nodeId) {
+                const ids = history.ids.filter((_, index) => index !== history.index);
+                focusHistoryRef.current = { ids, index: ids.length ? ids.length - 1 : -1 };
+                refreshFocusHistoryNav();
+            }
+        },
+        [refreshFocusHistoryNav],
+    );
 
     const focusHistoryStep = useCallback(
         (direction: -1 | 1) => {
@@ -3192,6 +3221,14 @@ function InfiniteCanvasPage() {
         setPreviewNodeId(node.id);
         setPreviewImageId(imageId || null);
     }, []);
+
+    const handleNodeImageDoubleClick = useCallback(
+        (node: CanvasNodeData, imageId?: string) => {
+            cancelFocusAnimation(node.id);
+            handleNodeViewImage(node, imageId);
+        },
+        [cancelFocusAnimation, handleNodeViewImage],
+    );
     const handleNodeRetry = useCallback(
         (node: CanvasNodeData) => {
             if (node.type === CanvasNodeType.Text && (node.metadata?.textCount || 1) > 1) {
@@ -3403,7 +3440,7 @@ function InfiniteCanvasPage() {
                             onRetryBatchImage={retryBatchImage}
                             onDeleteBatchImage={deleteBatchImage}
                             onRetry={handleNodeRetry}
-                            onViewImage={handleNodeViewImage}
+                            onViewImage={handleNodeImageDoubleClick}
                             onSelectReference={selectNodeReference}
                             onContextMenu={handleNodeContextMenu}
                         />
