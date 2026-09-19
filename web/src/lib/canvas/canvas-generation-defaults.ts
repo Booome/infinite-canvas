@@ -1,5 +1,4 @@
 import type { AiConfig } from "@/stores/use-config-store";
-import { isBuiltinNodeType } from "@/lib/canvas/node-registry";
 import { CanvasNodeType, type CanvasGenerationMode, type CanvasGenerationSnapshot, type CanvasNodeData, type CanvasNodeMetadata, type CanvasNodeTypeId } from "@/types/canvas";
 
 export function generationModeForNodeType(type: CanvasNodeTypeId): CanvasGenerationMode {
@@ -72,8 +71,7 @@ export function createGenerationSnapshot(mode: CanvasGenerationMode, metadata: C
 }
 
 export function isUploadedMaterial(node: CanvasNodeData) {
-    if (!isBuiltinNodeType(node.type)) return false;
-    return Boolean(node.metadata?.content) && !node.metadata?.generationSnapshot;
+    return node.metadata?.userContent === true;
 }
 
 export function generationSnapshotDiffers(snapshot: CanvasGenerationSnapshot | undefined, mode: CanvasGenerationMode, metadata: CanvasNodeMetadata, prompt: string, referenceNodeIds: string[]) {

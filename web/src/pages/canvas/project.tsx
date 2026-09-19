@@ -1577,16 +1577,16 @@ function InfiniteCanvasPage() {
             id,
             type: CanvasNodeType.Image,
             title: file.name,
-            position: { x: position.x - size.width / 2, y: position.y - size.height / 2 },
-            width: size.width,
-            height: size.height,
-            metadata: imageMetadata(image),
-        };
+        position: { x: position.x - size.width / 2, y: position.y - size.height / 2 },
+        width: size.width,
+        height: size.height,
+        metadata: { ...imageMetadata(image), userContent: true },
+    };
 
-        setNodes((prev) => [...prev, newNode]);
-        setSelectedNodeIds(new Set([id]));
-        setSelectedConnectionId(null);
-        setDialogNodeId(id);
+    setNodes((prev) => [...prev, newNode]);
+    setSelectedNodeIds(new Set([id]));
+    setSelectedConnectionId(null);
+    setDialogNodeId(id);
     }, []);
 
     const createVideoFileNode = useCallback(async (file: File, position: Position) => {
@@ -1602,7 +1602,7 @@ function InfiniteCanvasPage() {
                 position: { x: position.x - size.width / 2, y: position.y - size.height / 2 },
                 width: size.width,
                 height: size.height,
-                metadata: videoMetadata(video),
+                metadata: { ...videoMetadata(video), userContent: true },
             },
         ]);
         setSelectedNodeIds(new Set([id]));
@@ -1623,7 +1623,7 @@ function InfiniteCanvasPage() {
                 position: { x: position.x - spec.width / 2, y: position.y - spec.height / 2 },
                 width: spec.width,
                 height: spec.height,
-                metadata: audioMetadata(audio),
+                metadata: { ...audioMetadata(audio), userContent: true },
             },
         ]);
         setSelectedNodeIds(new Set([id]));
@@ -1636,7 +1636,7 @@ function InfiniteCanvasPage() {
             if (!trimmed) return false;
 
             const node = {
-                ...createCanvasNode(CanvasNodeType.Text, getCanvasCenter(), { content: trimmed, status: NODE_STATUS_SUCCESS }),
+                ...createCanvasNode(CanvasNodeType.Text, getCanvasCenter(), { content: trimmed, status: NODE_STATUS_SUCCESS, userContent: true }),
                 title: trimmed.slice(0, 32) || t("canvas.projectPage.clipboardText"),
             };
 
@@ -1810,7 +1810,7 @@ function InfiniteCanvasPage() {
         setNodes((prev) =>
             prev.map((node) =>
                 node.id === nodeId
-                    ? { ...node, metadata: { ...node.metadata, content, texts: node.metadata?.texts?.map((text) => (text.id === node.metadata?.primaryTextId ? { ...text, content } : text)) } }
+                    ? { ...node, metadata: { ...node.metadata, content, userContent: true, texts: node.metadata?.texts?.map((text) => (text.id === node.metadata?.primaryTextId ? { ...text, content } : text)) } }
                     : node,
             ),
         );
@@ -2302,7 +2302,7 @@ function InfiniteCanvasPage() {
                                       position: { x: node.position.x + node.width / 2 - spec.width / 2, y: node.position.y + node.height / 2 - spec.height / 2 },
                                       width: spec.width,
                                       height: spec.height,
-                                      metadata: { ...node.metadata, ...audioMetadata(audio), errorDetails: undefined },
+                                      metadata: { ...node.metadata, ...audioMetadata(audio), errorDetails: undefined, userContent: true },
                                   }
                                 : node,
                         ),
@@ -2322,7 +2322,7 @@ function InfiniteCanvasPage() {
                                       position: { x: node.position.x + node.width / 2 - nextSize.width / 2, y: node.position.y + node.height / 2 - nextSize.height / 2 },
                                       width: nextSize.width,
                                       height: nextSize.height,
-                                      metadata: { ...node.metadata, ...videoMetadata(video), errorDetails: undefined },
+                                      metadata: { ...node.metadata, ...videoMetadata(video), errorDetails: undefined, userContent: true },
                                   }
                                 : node,
                         ),
@@ -2354,6 +2354,7 @@ function InfiniteCanvasPage() {
                                           count: undefined,
                                           references: undefined,
                                           primaryImageId: undefined,
+                                          userContent: true,
                                       },
                                   }
                                 : node,
@@ -3118,7 +3119,7 @@ function InfiniteCanvasPage() {
                 position: { x: center.x - config.width / 2, y: center.y - config.height / 2 },
                 width: config.width,
                 height: config.height,
-                metadata: { ...imageMetadata({ ...storedImage, width: meta.width, height: meta.height }), prompt: image.prompt },
+                metadata: { ...imageMetadata({ ...storedImage, width: meta.width, height: meta.height }), prompt: image.prompt, userContent: true },
             };
 
             setNodes((prev) => [...prev, node]);
@@ -3133,7 +3134,7 @@ function InfiniteCanvasPage() {
         (text: string, title?: string) => {
             const center = screenToCanvas((containerRef.current?.getBoundingClientRect().left || 0) + size.width / 2, (containerRef.current?.getBoundingClientRect().top || 0) + size.height / 2);
             const node = {
-                ...createCanvasNode(CanvasNodeType.Text, center, { content: text, status: NODE_STATUS_SUCCESS }),
+                ...createCanvasNode(CanvasNodeType.Text, center, { content: text, status: NODE_STATUS_SUCCESS, userContent: true }),
                 title: title || text.slice(0, 32) || "Assistant Text",
             };
 
@@ -3162,7 +3163,7 @@ function InfiniteCanvasPage() {
                         position: { x: center.x - nextSize.width / 2, y: center.y - nextSize.height / 2 },
                         width: nextSize.width,
                         height: nextSize.height,
-                        metadata: { content: payload.url, storageKey: payload.storageKey, status: NODE_STATUS_SUCCESS, naturalWidth: payload.width, naturalHeight: payload.height },
+                        metadata: { content: payload.url, storageKey: payload.storageKey, status: NODE_STATUS_SUCCESS, naturalWidth: payload.width, naturalHeight: payload.height, userContent: true },
                     },
                 ]);
                 setSelectedNodeIds(new Set([id]));
