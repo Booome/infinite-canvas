@@ -29,6 +29,9 @@
 >
 > 如果你需要稳定维护自己的分支，建议自行 fork 后独立开发。二次开发与 PR 请保留原作者信息和前端页面标识。
 
+> [!NOTE]
+> 本仓库是 [basketikun/infinite-canvas](https://github.com/basketikun/infinite-canvas) 的 fork，会按我自己的使用习惯增删和调整功能，**不是功能完整的版本**，也不承诺稳定；如果你有需求或遇到问题，非常欢迎提 issue 一起推进。
+
 ## 赞助商
 
 <table>
