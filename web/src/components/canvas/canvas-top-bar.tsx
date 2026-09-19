@@ -10,6 +10,7 @@ import { useCanvasSidePanelStore } from "@/stores/use-canvas-side-panel-store";
 import { useThemeStore } from "@/stores/use-theme-store";
 import { DOCS_URL, IS_DESKTOP } from "@/constant/env";
 import { CanvasShortcutsList } from "./canvas-shortcuts-list";
+import { CanvasErrorLog } from "./canvas-error-log";
 
 export function CanvasTopBar({
     title,
@@ -142,6 +143,7 @@ export function CanvasTopBar({
                 </div>
 
                 <div className="pointer-events-auto flex items-center gap-1.5">
+                    <CanvasErrorLog />
                     <UserStatusActions variant="canvas" onOpenShortcuts={() => setShortcutsOpen(true)} onOpenPlugins={onOpenPlugins} />
                     <span className="h-6 w-px" style={{ background: theme.toolbar.border }} />
                     {IS_DESKTOP ? null : (

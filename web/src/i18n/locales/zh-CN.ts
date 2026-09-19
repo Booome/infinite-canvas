@@ -224,6 +224,7 @@ export default {
         loading: "正在加载画布...",
         exportSelected: "导出选中",
         deleteSelected: "删除选中",
+        errorLog: { title: "错误日志", empty: "还没有记录", clear: "清空", copyAll: "复制全部", copied: "日志已复制" },
         deleteAll: "删除全部",
         import: "导入画布",
         create: "新建画布",

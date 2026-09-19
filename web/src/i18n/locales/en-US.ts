@@ -224,6 +224,7 @@ export default {
         loading: "Loading canvases...",
         exportSelected: "Export selected",
         deleteSelected: "Delete selected",
+        errorLog: { title: "Error log", empty: "Nothing logged yet", clear: "Clear", copyAll: "Copy all", copied: "Log copied" },
         deleteAll: "Delete all",
         import: "Import canvas",
         create: "New canvas",

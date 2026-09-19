@@ -45,6 +45,7 @@ import { CanvasZoomControls } from "@/components/canvas/canvas-zoom-controls";
 import { useAgentStore } from "@/stores/use-agent-store";
 import { IS_DESKTOP } from "@/constant/env";
 import { useCanvasStore } from "@/stores/canvas/use-canvas-store";
+import { useErrorReport } from "@/hooks/use-error-report";
 import { useAgentBridge } from "@/pages/canvas/hooks/use-agent-bridge";
 import { usePluginHost } from "@/pages/canvas/hooks/use-plugin-host";
 import { buildNodeMentionReferences, getGroupResourceNodes, isCanvasReferenceNode, type CanvasResourceReference } from "@/lib/canvas/canvas-resource-references";
@@ -176,6 +177,7 @@ function measureFocusFrame(container: HTMLDivElement | null, nodeId: string) {
 
 function InfiniteCanvasPage() {
     const { message, modal } = App.useApp();
+    const reportError = useErrorReport();
     const { t } = useTranslation();
     // Subscribe to the registry version so plugin registration changes rerender the canvas.
     const nodeRegistryVersion = useNodeRegistryVersion((state) => state.version);
@@ -387,7 +389,7 @@ function InfiniteCanvasPage() {
             } catch (error) {
                 if (isGenerationCanceled(error)) return;
                 const errorDetails = error instanceof Error ? error.message : t("canvas.projectPage.generationFailed");
-                message.error(errorDetails);
+                reportError(t("canvas.projectPage.generationFailed"), errorDetails);
                 setNodes((prev) =>
                     prev.map((item) =>
                         item.id === node.id
@@ -2164,8 +2166,8 @@ function InfiniteCanvasPage() {
                 setNodes((prev) => prev.map((item) => (item.id === childId ? { ...item, width: size.width, height: size.height, metadata: { ...item.metadata, ...imageMetadata(uploaded), prompt, ...generationMetadata } } : item)));
             } catch (error) {
                 if (isGenerationCanceled(error)) return;
-                const errorDetails = error instanceof Error ? error.message : t("canvas.projectPage.maskFailed");
-                message.error(errorDetails);
+            const errorDetails = error instanceof Error ? error.message : t("canvas.projectPage.maskFailed");
+            reportError(t("canvas.projectPage.maskFailed"), errorDetails);
                 setNodes((prev) => prev.map((item) => (item.id === childId ? { ...item, metadata: { ...item.metadata, status: NODE_STATUS_ERROR, errorDetails } } : item)));
             } finally {
                 finishGenerationRequest(childId, controller);
@@ -2474,8 +2476,8 @@ function InfiniteCanvasPage() {
                     setDialogNodeId(null);
                 } catch (error) {
                     if (!isGenerationCanceled(error)) {
-                        const errorDetails = error instanceof Error ? error.message : t("canvas.projectPage.generationFailed");
-                        message.error(errorDetails);
+                const errorDetails = error instanceof Error ? error.message : t("canvas.projectPage.generationFailed");
+                reportError(t("canvas.projectPage.generationFailed"), errorDetails);
                         setNodes((prev) => prev.map((node) => (node.id === nodeId ? { ...node, metadata: { ...node.metadata, status: NODE_STATUS_ERROR, errorDetails } } : node)));
                     }
                 } finally {
@@ -2644,9 +2646,9 @@ function InfiniteCanvasPage() {
                         setNodes((prev) => prev.map((node) => (node.id === nodeId && isConfigNode && node.metadata?.status === NODE_STATUS_LOADING ? { ...node, metadata: { ...node.metadata, status: NODE_STATUS_IDLE, errorDetails: undefined } } : node)));
                         return;
                     }
-                    if (hasFailure) {
-                        message.error(hasSuccess ? t("canvas.projectPage.partialFailed") : firstError || t("canvas.projectPage.generationFailed"));
-                    }
+            if (hasFailure) {
+                reportError(hasSuccess ? t("canvas.projectPage.partialFailed") : t("canvas.projectPage.generationFailed"), firstError);
+            }
                     setNodes((prev) =>
                         prev.map((node) =>
                             node.id === nodeId && isConfigNode
@@ -2846,7 +2848,7 @@ function InfiniteCanvasPage() {
                 const failedTexts = results.filter((item) => item?.status === NODE_STATUS_ERROR);
                 const firstText = completedTexts[0];
                 if (completedTexts.length <= 1) setExpandedBatchNodeIds((current) => new Set([...current].filter((id) => id !== rootId)));
-                if (failedTexts.length) message.error(firstText ? t("canvas.projectPage.partialTextFailed") : failedTexts[0]?.errorDetails || t("canvas.projectPage.generationFailed"));
+                if (failedTexts.length) reportError(firstText ? t("canvas.projectPage.partialTextFailed") : t("canvas.projectPage.generationFailed"), firstText ? undefined : failedTexts[0]?.errorDetails);
                 setNodes((prev) =>
                     prev.map((node) => {
                         if (node.id === rootId) {
@@ -2870,7 +2872,7 @@ function InfiniteCanvasPage() {
             } catch (error) {
                 if (isGenerationCanceled(error)) return;
                 const errorDetails = error instanceof Error ? error.message : t("canvas.projectPage.generationFailed");
-                message.error(errorDetails);
+                reportError(t("canvas.projectPage.generationFailed"), errorDetails);
                 setNodes((prev) =>
                     prev.map((node) =>
                         node.id === nodeId || pendingChildIds.includes(node.id)
@@ -3030,7 +3032,7 @@ function InfiniteCanvasPage() {
             } catch (error) {
                 if (isGenerationCanceled(error)) return;
                 const errorDetails = error instanceof Error ? error.message : t("canvas.projectPage.generationFailed");
-                message.error(errorDetails);
+                reportError(t("canvas.projectPage.generationFailed"), errorDetails);
                 setNodes((prev) =>
                     prev.map((item) =>
                         item.id === node.id
