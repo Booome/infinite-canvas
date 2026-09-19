@@ -2600,7 +2600,7 @@ function InfiniteCanvasPage() {
                                     ? await requestEdit({ ...generationConfig, count: "1" }, effectivePrompt, referenceImages, { signal: controller.signal }).then((items) => items[0])
                                     : await requestGeneration({ ...generationConfig, count: "1" }, effectivePrompt, { signal: controller.signal }).then((items) => items[0]);
                                 const uploaded = await uploadImage(image.dataUrl, { signal: controller.signal });
-                                const keepNodeSize = reuseImageNode && sourceNode && (sourceNode.width !== imageConfig.width || sourceNode.height !== imageConfig.height);
+                                const keepNodeSize = reuseImageNode && sourceNode && (Boolean(sourceNode.metadata?.content) || sourceNode.width !== imageConfig.width || sourceNode.height !== imageConfig.height);
                                 const imageSize = keepNodeSize ? { width: sourceNode.width, height: sourceNode.height } : fitNodeSize(uploaded.width, uploaded.height, imageConfig.width, imageConfig.height);
                                 const item: CanvasNodeImage = { id: imageId, status: NODE_STATUS_SUCCESS, content: uploaded.url, storageKey: uploaded.storageKey, naturalWidth: uploaded.width, naturalHeight: uploaded.height, bytes: uploaded.bytes, mimeType: uploaded.mimeType };
                                 setNodes((prev) =>
